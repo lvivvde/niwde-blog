@@ -1,0 +1,88 @@
+---
+import { GITHUB_URL, SITE_TITLE } from '../consts';
+import HeaderLink from './HeaderLink.astro';
+---
+
+<header data-pagefind-ignore>
+	<nav aria-label="主导航">
+		<a class="brand" href="/" aria-label={`${SITE_TITLE} 首页`}>
+			<span class="brand-mark">N</span>
+			<span>{SITE_TITLE}</span>
+		</a>
+		<div class="links">
+			<HeaderLink href="/">首页</HeaderLink>
+			<HeaderLink href="/blog">文章</HeaderLink>
+			<HeaderLink href="/search">搜索</HeaderLink>
+			<HeaderLink href="/about">关于</HeaderLink>
+			<a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a>
+			<button id="theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">◐</button>
+		</div>
+	</nav>
+</header>
+
+<script is:inline>
+	const button = document.querySelector('#theme-toggle');
+	button?.addEventListener('click', () => {
+		const root = document.documentElement;
+		const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+		root.dataset.theme = next;
+		localStorage.setItem('theme', next);
+	});
+</script>
+
+<style>
+	header {
+		position: sticky;
+		top: 0;
+		z-index: 10;
+		border-bottom: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+		background: color-mix(in srgb, var(--surface) 88%, transparent);
+		backdrop-filter: blur(16px);
+	}
+	nav {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: min(100% - 2rem, 1080px);
+		min-height: 68px;
+		margin: 0 auto;
+	}
+	.brand, .links, .links a { display: flex; align-items: center; }
+	.brand {
+		gap: 0.6rem;
+		color: var(--text);
+		font-weight: 700;
+		text-decoration: none;
+	}
+	.brand-mark {
+		display: grid;
+		width: 2rem;
+		height: 2rem;
+		place-items: center;
+		border-radius: 9px;
+		background: var(--accent);
+		color: #071a18;
+	}
+	.links { gap: 0.2rem; }
+	.links a, button {
+		padding: 0.45rem 0.6rem;
+		border: 0;
+		border-radius: 8px;
+		background: transparent;
+		color: var(--text-soft);
+		font: inherit;
+		font-size: 0.9rem;
+		text-decoration: none;
+		cursor: pointer;
+	}
+	.links a:hover, .links a.active, button:hover {
+		background: var(--accent-soft);
+		color: var(--accent-strong);
+	}
+	@media (max-width: 720px) {
+		nav { align-items: flex-start; padding: 0.75rem 0; }
+		.links { justify-content: flex-end; flex-wrap: wrap; }
+		.links a { padding: 0.35rem 0.45rem; font-size: 0.8rem; }
+		.brand > span:last-child { display: none; }
+	}
+</style>

@@ -1,0 +1,31 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import { GITHUB_URL, REALMMESH_URL } from '../consts';
+---
+
+<PageLayout title="关于 Niwde" description="游戏后端开发者，关注 C++、Lua 与 AI 辅助开发。">
+	<section class="about">
+		<p class="eyebrow">About</p>
+		<h1>Niwde</h1>
+		<p class="lead">游戏后端开发者，长期使用 C++ 与 Lua，也在持续验证 AI 参与真实工程开发时的能力边界。</p>
+		<div class="facts">
+			<div><span>方向</span><strong>游戏后端</strong></div>
+			<div><span>技术</span><strong>C++ / Lua</strong></div>
+			<div><span>关注</span><strong>AI 辅助开发</strong></div>
+		</div>
+		<p>最近正在开发 <a href={REALMMESH_URL}>RealmMesh</a>：一个采用帧驱动模型的 C++ 游戏服务端。项目的生产代码与测试代码由 AI 生成，我负责需求、架构边界、审查和最终验收。</p>
+		<p>这个博客会记录游戏服务端架构、AI 开发工作流、项目实验，以及那些不能只靠“代码能跑”来回答的问题。</p>
+		<p><a href={GITHUB_URL}>在 GitHub 查看公开项目 →</a></p>
+	</section>
+</PageLayout>
+
+<style>
+	.about { max-width: 760px; }
+	.about h1 { margin-bottom: 1rem; }
+	.lead { color: var(--text-soft); font-size: 1.25rem; }
+	.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 3rem 0; }
+	.facts div { padding: 1.25rem; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-raised); }
+	.facts span, .facts strong { display: block; }
+	.facts span { color: var(--text-soft); font-size: 0.8rem; }
+	@media (max-width: 650px) { .facts { grid-template-columns: 1fr; } }
+</style>

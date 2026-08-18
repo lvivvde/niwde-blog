@@ -1,0 +1,17 @@
+:8080 {
+	bind 127.0.0.1
+	root * /srv/niwde-blog/current
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	@immutable path /_astro/* /pagefind/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+
+	file_server
+}
