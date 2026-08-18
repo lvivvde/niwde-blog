@@ -1,5 +1,9 @@
 :8080 {
 	bind 127.0.0.1
+
+	@www host www.yangjiexin.com
+	redir @www https://yangjiexin.com{uri} permanent
+
 	root * /srv/niwde-blog/current
 	encode zstd gzip
 
