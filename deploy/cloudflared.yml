@@ -1,0 +1,9 @@
+tunnel: 4dc08316-35d0-498f-b0e6-649841977dec
+credentials-file: /etc/cloudflared/4dc08316-35d0-498f-b0e6-649841977dec.json
+
+ingress:
+  - hostname: yangjiexin.com
+    service: http://127.0.0.1:8080
+  - hostname: www.yangjiexin.com
+    service: http://127.0.0.1:8080
+  - service: http_status:404
