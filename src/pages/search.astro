@@ -13,12 +13,12 @@ import PageLayout from '../layouts/PageLayout.astro';
 </PageLayout>
 
 <link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
+<script is:inline src="/pagefind/pagefind-ui.js"></script>
 <script is:inline>
-	(async () => {
+	(() => {
 		const status = document.querySelector('#search-status');
 		try {
-			const { PagefindUI } = await import('/pagefind/pagefind-ui.js');
-			new PagefindUI({ element: '#search', showSubResults: true, translations: { placeholder: '输入关键词', clear_search: '清除', zero_results: '没有找到 [SEARCH_TERM] 的结果' } });
+			new window.PagefindUI({ element: '#search', showSubResults: true, translations: { placeholder: '输入关键词', clear_search: '清除', zero_results: '没有找到 [SEARCH_TERM] 的结果' } });
 			status?.remove();
 		} catch {
 			if (status) status.textContent = '搜索索引在生产构建后可用。';
