@@ -72,7 +72,12 @@ jobs:
           chmod 600 "$signing_key"
           (
             cd dist
-            find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum > .manifest.sha256
+            find . -type f \
+              ! -name '.manifest.sha256' \
+              ! -name '.manifest.sha256.sig' \
+              -print0 \
+              | LC_ALL=C sort -z \
+              | xargs -0 sha256sum > .manifest.sha256
           )
           ssh-keygen -Y sign -q -f "$signing_key" -n niwde-blog dist/.manifest.sha256
 
