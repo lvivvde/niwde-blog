@@ -1,0 +1,43 @@
+name: Security and availability checks
+
+on:
+  schedule:
+    - cron: "23 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      - name: Rebuild from lockfile
+        run: npm ci && npm run build
+
+  production-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify public endpoints and expected content
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --max-time 20 https://yangjiexin.com/ | grep -Fq 'Niwde'
+          curl --fail --silent --show-error --location --max-time 20 https://yangjiexin.com/search/ | grep -Fq '搜索'
+          curl --fail --silent --show-error --location --max-time 20 https://yangjiexin.com/rss.xml | grep -Fq '<rss'
