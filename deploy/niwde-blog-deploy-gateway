@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+original_command="${SSH_ORIGINAL_COMMAND:-}"
+
+if [[ "$original_command" == rsync\ --server\ * ]]; then
+	exec /usr/bin/rrsync -wo /srv/niwde-blog/incoming
+fi
+
+if [[ "$original_command" =~ ^activate\ ([0-9a-f]{40})$ ]]; then
+	exec sudo -- /usr/local/bin/activate-niwde-blog "${BASH_REMATCH[1]}"
+fi
+
+echo "Deployment command rejected" >&2
+exit 126
