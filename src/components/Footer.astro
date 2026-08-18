@@ -1,0 +1,30 @@
+---
+import { GITHUB_URL } from '../consts';
+const year = new Date().getFullYear();
+---
+
+<footer data-pagefind-ignore>
+	<div>
+		<p>© {year} Niwde. 文章与原创图片保留所有权利。</p>
+		<p><a href={GITHUB_URL}>GitHub</a> · <a href="/rss.xml">RSS</a></p>
+	</div>
+</footer>
+
+<style>
+	footer {
+		border-top: 1px solid var(--border);
+		color: var(--text-soft);
+		font-size: 0.88rem;
+	}
+	footer div {
+		display: flex;
+		justify-content: space-between;
+		width: min(100% - 2rem, 1080px);
+		margin: 0 auto;
+		padding: 2rem 0 4rem;
+	}
+	footer p { margin: 0; }
+	@media (max-width: 600px) {
+		footer div { flex-direction: column; gap: 0.5rem; }
+	}
+</style>
