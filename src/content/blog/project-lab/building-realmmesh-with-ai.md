@@ -2,7 +2,6 @@
 title: "我正在用 AI 从零构建一个 C++ + Lua 游戏服务端"
 description: "RealmMesh 不只是一次代码生成实验：我想验证 AI 能否进入游戏后端的需求、架构、测试与迭代闭环。"
 pubDate: 2026-08-19
-category: "项目实验"
 tags: ["RealmMesh", "C++", "Lua", "AI Coding"]
 draft: false
 ---

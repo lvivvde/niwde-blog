@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import FormattedDate from '../components/FormattedDate.astro';
 import PageLayout from '../layouts/PageLayout.astro';
-import { BLOG_CATEGORIES, getCategoryPath } from '../categories';
+import { BLOG_CATEGORIES, getCategoryFromEntryId, getCategoryPath, getPostSlug } from '../categories';
 import { REALMMESH_URL, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 
 const allPosts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
@@ -39,7 +39,7 @@ const posts = allPosts.slice(0, 4);
 			{
 				BLOG_CATEGORIES.map((category) => (
 					<a href={getCategoryPath(category.name)}>
-						<div><strong>{category.name}</strong><span>{allPosts.filter((post) => post.data.category === category.name).length} 篇</span></div>
+						<div><strong>{category.name}</strong><span>{allPosts.filter((post) => getCategoryFromEntryId(post.id).name === category.name).length} 篇</span></div>
 						<p>{category.description}</p>
 					</a>
 				))
@@ -54,13 +54,16 @@ const posts = allPosts.slice(0, 4);
 		</div>
 		<div class="post-grid">
 			{
-				posts.map((post) => (
-					<article class="post-card">
-						<div><a class="pill" href={getCategoryPath(post.data.category)}>{post.data.category}</a><FormattedDate date={post.data.pubDate} /></div>
-						<h3><a href={`/blog/${post.id}/`}>{post.data.title}</a></h3>
-						<p>{post.data.description}</p>
-					</article>
-				))
+				posts.map((post) => {
+					const category = getCategoryFromEntryId(post.id);
+					return (
+						<article class="post-card">
+							<div><a class="pill" href={getCategoryPath(category.name)}>{category.name}</a><FormattedDate date={post.data.pubDate} /></div>
+							<h3><a href={`/blog/${getPostSlug(post.id)}/`}>{post.data.title}</a></h3>
+							<p>{post.data.description}</p>
+						</article>
+					);
+				})
 			}
 		</div>
 	</section>

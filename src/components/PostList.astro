@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import { getCategoryPath } from '../categories';
+import { getCategoryFromEntryId, getCategoryPath, getPostSlug } from '../categories';
 import FormattedDate from './FormattedDate.astro';
 
 interface Props {
@@ -14,17 +14,20 @@ const { posts, emptyMessage = '这个栏目还没有文章，内容正在准备�
 <section class="posts">
 	{
 		posts.length > 0 ? (
-			posts.map((post) => (
-				<article class="post-card">
-					<div class="post-meta">
-						<a href={getCategoryPath(post.data.category)}>{post.data.category}</a>
-						<FormattedDate date={post.data.pubDate} />
-					</div>
-					<h2><a href={`/blog/${post.id}/`}>{post.data.title}</a></h2>
-					<p>{post.data.description}</p>
-					<div class="tags">{post.data.tags.map((tag) => <span>#{tag}</span>)}</div>
-				</article>
-			))
+			posts.map((post) => {
+				const category = getCategoryFromEntryId(post.id);
+				return (
+					<article class="post-card">
+						<div class="post-meta">
+							<a href={getCategoryPath(category.name)}>{category.name}</a>
+							<FormattedDate date={post.data.pubDate} />
+						</div>
+						<h2><a href={`/blog/${getPostSlug(post.id)}/`}>{post.data.title}</a></h2>
+						<p>{post.data.description}</p>
+						<div class="tags">{post.data.tags.map((tag) => <span>#{tag}</span>)}</div>
+					</article>
+				);
+			})
 		) : (
 			<div class="empty-state">
 				<p class="eyebrow">Coming Soon</p>

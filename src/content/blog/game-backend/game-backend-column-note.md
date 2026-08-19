@@ -2,7 +2,6 @@
 title: "栏目说明｜游戏后端"
 description: "这个栏目将记录 C++、Lua、网络、并发与游戏服务端架构实践。"
 pubDate: 2026-08-18
-category: "游戏后端"
 tags: ["栏目说明", "游戏后端"]
 draft: false
 ---

@@ -2,7 +2,6 @@
 title: "栏目说明｜随笔复盘"
 description: "这个栏目用来保留开发过程中的取舍、失败、不确定性与阶段性结论。"
 pubDate: 2026-08-16
-category: "随笔复盘"
 tags: ["栏目说明", "复盘"]
 draft: false
 ---

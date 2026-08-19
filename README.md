@@ -23,14 +23,23 @@ npm run preview
 
 ## 写文章
 
-在 `src/content/blog/` 新建 Markdown 或 MDX 文件。Frontmatter 示例：
+按分类在下面四个目录中新建 Markdown 或 MDX 文件，目录名就是分类，不需要在文章里重复填写分类字段：
+
+```text
+src/content/blog/
+├── game-backend/       # 游戏后端
+├── ai-development/     # AI 开发
+├── project-lab/        # 项目实验
+└── retrospectives/     # 随笔复盘
+```
+
+Frontmatter 示例：
 
 ```yaml
 ---
 title: "文章标题"
 description: "文章摘要"
 pubDate: 2026-08-19
-category: "项目实验"
 tags: ["C++", "Lua"]
 draft: false
 ---

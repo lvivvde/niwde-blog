@@ -2,7 +2,6 @@
 title: "栏目说明｜AI 开发"
 description: "这个栏目将记录 AI 参与需求、编码、测试、审查与迭代的真实工作流。"
 pubDate: 2026-08-17
-category: "AI 开发"
 tags: ["栏目说明", "AI Coding"]
 draft: false
 ---
