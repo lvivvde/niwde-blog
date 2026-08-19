@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
-import { BLOG_CATEGORIES } from '../../categories';
+import { BLOG_CATEGORIES, getCategoryFromEntryId } from '../../categories';
 import PageLayout from '../../layouts/PageLayout.astro';
 
 const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -15,7 +15,7 @@ const posts = await getCollection('blog', ({ data }) => !data.draft);
 	<section class="category-grid">
 		{
 			BLOG_CATEGORIES.map((category) => {
-				const count = posts.filter((post) => post.data.category === category.name).length;
+				const count = posts.filter((post) => getCategoryFromEntryId(post.id).name === category.name).length;
 				return (
 					<a href={`/categories/${category.slug}/`}>
 						<div><span>{String(count).padStart(2, '0')}</span><span>篇文章</span></div>

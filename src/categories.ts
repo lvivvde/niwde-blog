@@ -21,12 +21,27 @@ export const BLOG_CATEGORIES = [
 	},
 ] as const;
 
-export const BLOG_CATEGORY_NAMES = BLOG_CATEGORIES.map((category) => category.name) as [
-	(typeof BLOG_CATEGORIES)[number]['name'],
-	...(typeof BLOG_CATEGORIES)[number]['name'][],
-];
-
 export type BlogCategoryName = (typeof BLOG_CATEGORIES)[number]['name'];
+
+function getEntrySegments(entryId: string) {
+	return entryId.replaceAll('\\', '/').split('/').filter(Boolean);
+}
+
+export function getCategoryFromEntryId(entryId: string) {
+	const [folder] = getEntrySegments(entryId);
+	const category = BLOG_CATEGORIES.find((item) => item.slug === folder);
+	if (!category) throw new Error(`Blog post is not inside a known category folder: ${entryId}`);
+	return category;
+}
+
+export function getPostSlug(entryId: string) {
+	const segments = getEntrySegments(entryId);
+	const filename = segments.at(-1);
+	if (!filename || segments.length < 2) {
+		throw new Error(`Blog post must be inside a category folder: ${entryId}`);
+	}
+	return filename.replace(/\.(md|mdx)$/i, '');
+}
 
 export function getCategoryPath(name: BlogCategoryName) {
 	const category = BLOG_CATEGORIES.find((item) => item.name === name);

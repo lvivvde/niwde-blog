@@ -1,7 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { getCollection } from 'astro:content';
-import { BLOG_CATEGORIES } from '../../categories';
+import { BLOG_CATEGORIES, getCategoryFromEntryId } from '../../categories';
 import CategoryNav from '../../components/CategoryNav.astro';
 import PostList from '../../components/PostList.astro';
 import PageLayout from '../../layouts/PageLayout.astro';
@@ -15,7 +15,7 @@ export async function getStaticPaths() {
 		params: { slug: category.slug },
 		props: {
 			category,
-			posts: posts.filter((post) => post.data.category === category.name),
+			posts: posts.filter((post) => getCategoryFromEntryId(post.id).name === category.name),
 		},
 	}));
 }
