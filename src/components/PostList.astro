@@ -1,0 +1,54 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { getCategoryPath } from '../categories';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+	posts: CollectionEntry<'blog'>[];
+	emptyMessage?: string;
+}
+
+const { posts, emptyMessage = '这个栏目还没有文章，内容正在准备中。' } = Astro.props;
+---
+
+<section class="posts">
+	{
+		posts.length > 0 ? (
+			posts.map((post) => (
+				<article class="post-card">
+					<div class="post-meta">
+						<a href={getCategoryPath(post.data.category)}>{post.data.category}</a>
+						<FormattedDate date={post.data.pubDate} />
+					</div>
+					<h2><a href={`/blog/${post.id}/`}>{post.data.title}</a></h2>
+					<p>{post.data.description}</p>
+					<div class="tags">{post.data.tags.map((tag) => <span>#{tag}</span>)}</div>
+				</article>
+			))
+		) : (
+			<div class="empty-state">
+				<p class="eyebrow">Coming Soon</p>
+				<p>{emptyMessage}</p>
+			</div>
+		)
+	}
+</section>
+
+<style>
+	.posts { display: grid; gap: 1rem; }
+	.post-card, .empty-state {
+		padding: 1.75rem;
+		border: 1px solid var(--border);
+		border-radius: 16px;
+		background: var(--surface-raised);
+	}
+	.post-card:hover { border-color: var(--accent); }
+	.post-meta { display: flex; justify-content: space-between; color: var(--text-soft); font-size: 0.82rem; }
+	.post-meta a { color: var(--accent-strong); font-weight: 700; text-decoration: none; }
+	.post-card h2 { margin-top: 1rem; font-size: clamp(1.4rem, 3vw, 2rem); }
+	.post-card h2 a { color: var(--text); text-decoration: none; }
+	.post-card p, .empty-state > p:last-child { color: var(--text-soft); }
+	.tags { display: flex; flex-wrap: wrap; gap: 0.5rem; color: var(--accent-strong); font-size: 0.78rem; }
+	.empty-state .eyebrow { margin-bottom: 0.5rem; }
+	.empty-state > p:last-child { margin: 0; }
+</style>

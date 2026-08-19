@@ -1,12 +1,12 @@
 ---
 import { getCollection } from 'astro:content';
-import FormattedDate from '../../components/FormattedDate.astro';
+import CategoryNav from '../../components/CategoryNav.astro';
+import PostList from '../../components/PostList.astro';
 import PageLayout from '../../layouts/PageLayout.astro';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
-const categories = ['游戏后端', 'AI 开发', '项目实验', '随笔复盘'];
 ---
 
 <PageLayout title="文章 · Niwde" description="游戏后端、AI 开发、项目实验与随笔复盘。">
@@ -14,32 +14,13 @@ const categories = ['游戏后端', 'AI 开发', '项目实验', '随笔复盘']
 		<p class="eyebrow">Writing</p>
 		<h1>文章</h1>
 		<p>从真实项目出发，记录能复用的方法，也保留失败与不确定性。</p>
-		<div class="categories">{categories.map((category) => <span class="pill">{category}</span>)}</div>
+		<CategoryNav />
 	</header>
-	<section class="posts">
-		{
-			posts.map((post) => (
-				<a href={`/blog/${post.id}/`}>
-					<div class="post-meta"><span>{post.data.category}</span><FormattedDate date={post.data.pubDate} /></div>
-					<h2>{post.data.title}</h2>
-					<p>{post.data.description}</p>
-					<div class="tags">{post.data.tags.map((tag) => <span>#{tag}</span>)}</div>
-				</a>
-			))
-		}
-	</section>
+	<PostList posts={posts} emptyMessage="还没有公开文章。" />
 </PageLayout>
 
 <style>
 	.page-header { max-width: 720px; margin-bottom: 4rem; }
 	.page-header h1 { margin-bottom: 1rem; }
 	.page-header > p:not(.eyebrow) { color: var(--text-soft); font-size: 1.15rem; }
-	.categories, .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-	.posts { display: grid; gap: 1rem; }
-	.posts > a { display: block; padding: 1.75rem; border: 1px solid var(--border); border-radius: 16px; background: var(--surface-raised); color: var(--text); text-decoration: none; }
-	.posts > a:hover { border-color: var(--accent); }
-	.post-meta { display: flex; justify-content: space-between; color: var(--text-soft); font-size: 0.82rem; }
-	.posts h2 { margin-top: 1rem; font-size: clamp(1.4rem, 3vw, 2rem); }
-	.posts p { color: var(--text-soft); }
-	.tags { color: var(--accent-strong); font-size: 0.78rem; }
 </style>

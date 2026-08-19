@@ -2,11 +2,13 @@
 import { getCollection } from 'astro:content';
 import FormattedDate from '../components/FormattedDate.astro';
 import PageLayout from '../layouts/PageLayout.astro';
+import { BLOG_CATEGORIES, getCategoryPath } from '../categories';
 import { REALMMESH_URL, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 
-const posts = (await getCollection('blog', ({ data }) => !data.draft))
-	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-	.slice(0, 4);
+const allPosts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const posts = allPosts.slice(0, 4);
 ---
 
 <PageLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
@@ -28,6 +30,23 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
 		</aside>
 	</section>
 
+	<section class="category-section">
+		<div class="section-heading">
+			<div><p class="eyebrow">Four Tracks</p><h2>四个栏目</h2></div>
+			<a href="/categories">查看全部分类 →</a>
+		</div>
+		<div class="category-grid">
+			{
+				BLOG_CATEGORIES.map((category) => (
+					<a href={getCategoryPath(category.name)}>
+						<div><strong>{category.name}</strong><span>{allPosts.filter((post) => post.data.category === category.name).length} 篇</span></div>
+						<p>{category.description}</p>
+					</a>
+				))
+			}
+		</div>
+	</section>
+
 	<section class="recent">
 		<div class="section-heading">
 			<div><p class="eyebrow">Latest Notes</p><h2>最近文章</h2></div>
@@ -36,11 +55,11 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
 		<div class="post-grid">
 			{
 				posts.map((post) => (
-					<a class="post-card" href={`/blog/${post.id}/`}>
-						<div><span class="pill">{post.data.category}</span><FormattedDate date={post.data.pubDate} /></div>
-						<h3>{post.data.title}</h3>
+					<article class="post-card">
+						<div><a class="pill" href={getCategoryPath(post.data.category)}>{post.data.category}</a><FormattedDate date={post.data.pubDate} /></div>
+						<h3><a href={`/blog/${post.id}/`}>{post.data.title}</a></h3>
 						<p>{post.data.description}</p>
-					</a>
+					</article>
 				))
 			}
 		</div>
@@ -58,18 +77,26 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
 	.hero aside h2 { font-size: 2.2rem; }
 	.stack { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 	.stack span { padding: 0.3rem 0.55rem; border-radius: 7px; background: var(--accent-soft); color: var(--accent-strong); font-size: 0.78rem; }
-	.recent { margin-top: 5rem; }
+	.category-section, .recent { margin-top: 5rem; }
 	.section-heading { display: flex; align-items: end; justify-content: space-between; margin-bottom: 1.5rem; }
 	.section-heading .eyebrow { margin-bottom: 0.35rem; }
+	.category-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+	.category-grid > a { display: block; padding: 1.25rem; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-raised); color: var(--text); text-decoration: none; }
+	.category-grid > a:hover { border-color: var(--accent); transform: translateY(-2px); }
+	.category-grid > a > div { display: flex; justify-content: space-between; gap: 0.5rem; align-items: baseline; }
+	.category-grid span { color: var(--text-soft); font-size: 0.78rem; white-space: nowrap; }
+	.category-grid p { margin: 0.75rem 0 0; color: var(--text-soft); font-size: 0.9rem; }
 	.post-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-	.post-card { display: block; padding: 1.5rem; border: 1px solid var(--border); border-radius: 16px; background: var(--surface-raised); color: var(--text); text-decoration: none; }
+	.post-card { display: block; padding: 1.5rem; border: 1px solid var(--border); border-radius: 16px; background: var(--surface-raised); color: var(--text); }
 	.post-card:hover { border-color: var(--accent); transform: translateY(-2px); }
 	.post-card > div { display: flex; justify-content: space-between; align-items: center; color: var(--text-soft); font-size: 0.8rem; }
 	.post-card h3 { margin-top: 1.25rem; }
+	.post-card h3 a { color: var(--text); text-decoration: none; }
+	.post-card .pill { text-decoration: none; }
 	.post-card p { margin: 0; color: var(--text-soft); }
 	@media (max-width: 760px) {
 		.hero { grid-template-columns: 1fr; gap: 2rem; min-height: auto; }
 		.hero aside { transform: none; }
-		.post-grid { grid-template-columns: 1fr; }
+		.category-grid, .post-grid { grid-template-columns: 1fr; }
 	}
 </style>
