@@ -1,0 +1,45 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
+import { BLOG_CATEGORIES } from '../../categories';
+import CategoryNav from '../../components/CategoryNav.astro';
+import PostList from '../../components/PostList.astro';
+import PageLayout from '../../layouts/PageLayout.astro';
+
+export async function getStaticPaths() {
+	const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+		(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+	);
+
+	return BLOG_CATEGORIES.map((category) => ({
+		params: { slug: category.slug },
+		props: {
+			category,
+			posts: posts.filter((post) => post.data.category === category.name),
+		},
+	}));
+}
+
+interface Props {
+	category: (typeof BLOG_CATEGORIES)[number];
+	posts: CollectionEntry<'blog'>[];
+}
+
+const { category, posts } = Astro.props;
+---
+
+<PageLayout title={`${category.name} · Niwde`} description={category.description}>
+	<header class="page-header">
+		<p class="eyebrow">Category</p>
+		<h1>{category.name}</h1>
+		<p>{category.description}</p>
+		<CategoryNav current={category.name} />
+	</header>
+	<PostList posts={posts} />
+</PageLayout>
+
+<style>
+	.page-header { max-width: 760px; margin-bottom: 3rem; }
+	.page-header h1 { margin-bottom: 1rem; }
+	.page-header > p:not(.eyebrow) { color: var(--text-soft); font-size: 1.15rem; }
+</style>

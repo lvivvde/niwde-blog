@@ -1,0 +1,52 @@
+---
+import { getCollection } from 'astro:content';
+import { BLOG_CATEGORIES } from '../../categories';
+import PageLayout from '../../layouts/PageLayout.astro';
+
+const posts = await getCollection('blog', ({ data }) => !data.draft);
+---
+
+<PageLayout title="分类 · Niwde" description="游戏后端、AI 开发、项目实验与随笔复盘。">
+	<header class="page-header">
+		<p class="eyebrow">Categories</p>
+		<h1>四个栏目</h1>
+		<p>按主题浏览文章。空栏目会保留入口，后续内容会直接归档到这里。</p>
+	</header>
+	<section class="category-grid">
+		{
+			BLOG_CATEGORIES.map((category) => {
+				const count = posts.filter((post) => post.data.category === category.name).length;
+				return (
+					<a href={`/categories/${category.slug}/`}>
+						<div><span>{String(count).padStart(2, '0')}</span><span>篇文章</span></div>
+						<h2>{category.name}</h2>
+						<p>{category.description}</p>
+						<strong>进入栏目 →</strong>
+					</a>
+				);
+			})
+		}
+	</section>
+</PageLayout>
+
+<style>
+	.page-header { max-width: 720px; margin-bottom: 3rem; }
+	.page-header h1 { margin-bottom: 1rem; }
+	.page-header > p:last-child { color: var(--text-soft); font-size: 1.15rem; }
+	.category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+	.category-grid > a {
+		display: block;
+		padding: 1.75rem;
+		border: 1px solid var(--border);
+		border-radius: 16px;
+		background: var(--surface-raised);
+		color: var(--text);
+		text-decoration: none;
+	}
+	.category-grid > a:hover { border-color: var(--accent); transform: translateY(-2px); }
+	.category-grid > a > div { display: flex; justify-content: space-between; color: var(--text-soft); font-size: 0.82rem; }
+	.category-grid h2 { margin-top: 1.5rem; }
+	.category-grid p { color: var(--text-soft); }
+	.category-grid strong { color: var(--accent-strong); font-size: 0.9rem; }
+	@media (max-width: 680px) { .category-grid { grid-template-columns: 1fr; } }
+</style>

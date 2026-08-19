@@ -1,0 +1,32 @@
+---
+import { BLOG_CATEGORIES } from '../categories';
+
+interface Props {
+	current?: string;
+}
+
+const { current } = Astro.props;
+---
+
+<nav class="category-nav" aria-label="文章分类">
+	{
+		BLOG_CATEGORIES.map((category) => (
+			<a
+				class:list={['pill', { active: current === category.name }]}
+				href={`/categories/${category.slug}/`}
+			>
+				{category.name}
+			</a>
+		))
+	}
+</nav>
+
+<style>
+	.category-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+	.category-nav a { text-decoration: none; }
+	.category-nav a:hover, .category-nav a.active {
+		border-color: var(--accent);
+		background: var(--accent-soft);
+		color: var(--accent-strong);
+	}
+</style>
