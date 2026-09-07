@@ -3,11 +3,13 @@
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig, fontProviders } from 'astro/config';
+import { siteConfig } from './site.config.mjs';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://yangjiexin.com',
-	integrations: [mdx(), sitemap()],
+	site: siteConfig.origin,
+	outDir: process.env.SITE_OUT_DIR || './dist',
+	integrations: [mdx(), ...(siteConfig.indexable ? [sitemap()] : [])],
 	fonts: [
 		{
 			provider: fontProviders.local(),

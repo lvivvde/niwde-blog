@@ -1,10 +1,6 @@
 :8080 {
 	bind 127.0.0.1
 
-	@www host www.yangjiexin.com
-	redir @www https://yangjiexin.com{uri} permanent
-
-	root * /srv/niwde-blog/current
 	encode zstd gzip
 
 	header {
@@ -20,5 +16,28 @@
 	@immutable path /_astro/* /pagefind/*
 	header @immutable Cache-Control "public, max-age=31536000, immutable"
 
-	file_server
+	@resume host yangjiexin.com www.yangjiexin.com
+	header @resume X-Robots-Tag "noindex"
+
+	@resume_www host www.yangjiexin.com
+	handle @resume_www {
+		redir https://yangjiexin.com{uri} permanent
+	}
+	@blog_www host www.niwde.com
+	handle @blog_www {
+		redir https://niwde.com{uri} permanent
+	}
+	@portfolio host yangjiexin.com
+	handle @portfolio {
+		root * /srv/niwde-blog/current/portfolio
+		file_server
+	}
+	@blog host niwde.com
+	handle @blog {
+		root * /srv/niwde-blog/current/blog
+		file_server
+	}
+	handle {
+		respond "Not found" 404
+	}
 }

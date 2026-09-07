@@ -7,8 +7,12 @@
   },
   "scripts": {
     "dev": "astro dev",
-		"build": "astro build && pagefind --site dist",
-    "preview": "astro preview",
+    "dev:blog": "SITE_VARIANT=blog astro dev --port 4322",
+    "build": "npm run build:portfolio && npm run build:blog && node scripts/verify-sites.mjs",
+    "build:portfolio": "SITE_VARIANT=portfolio SITE_OUT_DIR=./dist/portfolio astro build && pagefind --site dist/portfolio",
+    "build:blog": "SITE_VARIANT=blog SITE_OUT_DIR=./dist/blog astro build && pagefind --site dist/blog",
+    "preview": "SITE_OUT_DIR=./dist/portfolio astro preview",
+    "preview:blog": "SITE_VARIANT=blog SITE_OUT_DIR=./dist/blog astro preview --port 4322",
     "astro": "astro"
   },
   "dependencies": {

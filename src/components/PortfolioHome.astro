@@ -1,0 +1,70 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import { REALMMESH_URL, SITE_DESCRIPTION } from '../consts';
+---
+
+<PageLayout title="项目作品 · Niwde" description={SITE_DESCRIPTION}>
+	<section class="intro" aria-labelledby="intro-title">
+		<p class="eyebrow">Niwde / Game Backend Developer</p>
+		<h1 id="intro-title">游戏后端开发，<br />从架构到验证。</h1>
+		<p class="lead">长期使用 C++ 与 Lua，关注服务端的状态流转、并发边界和失败处理。现在也在真实项目中探索 AI 参与开发时，如何把需求、审查与验收做好。</p>
+		<div class="actions"><a class="primary" href="#projects">查看代表项目 ↓</a><a href="/about/">了解我的工作方式 →</a></div>
+		<ul class="expertise" aria-label="技术方向"><li>C++ / Lua</li><li>游戏服务端架构</li><li>AI 开发与工程验证</li></ul>
+	</section>
+
+	<section id="projects" aria-labelledby="projects-title">
+		<div class="section-heading"><p class="eyebrow">Selected Projects</p><h2 id="projects-title">代表项目</h2></div>
+		<article class="project">
+			<div class="project-heading"><span class="number" aria-hidden="true">01</span><div><p class="status">持续开发中的个人项目</p><h3>RealmMesh</h3><p class="subtitle">C++ + Lua 游戏服务端</p></div></div>
+			<div class="project-body">
+				<p>围绕固定或可配置帧率，构建网络、逻辑与服务协作的边界，探索 AI 持续参与复杂 C++ 工程的开发方式。</p>
+				<dl><div><dt>我的职责</dt><dd>提出需求、确定架构边界、审查实现与测试，并完成最终验收。生产代码与测试代码由 AI 生成。</dd></div><div><dt>技术重点</dt><dd>网络 I/O 与帧逻辑之间的有界队列、服务发现、C++ / Lua 调用边界与热更新。</dd></div><div><dt>验证关注</dt><dd>断线、超时、队列满和依赖失败时的行为；项目仍在迭代，不将实验结果等同于生产验证。</dd></div></dl>
+				<div class="project-links"><a href="/blog/building-realmmesh-with-ai/">阅读项目复盘 →</a><a href={REALMMESH_URL}>查看源代码 ↗</a></div>
+			</div>
+		</article>
+		<article class="project">
+			<div class="project-heading"><span class="number" aria-hidden="true">02</span><div><p class="status">知识检索工具</p><h3>游戏设计知识 MCP</h3><p class="subtitle">让项目事实可以查询、定位和复核</p></div></div>
+			<div class="project-body">
+				<p>将 Word、Excel 与文档图片组织成可查询的证据，让 AI 的回答能够回到源文件、章节与单元格。</p>
+				<dl><div><dt>设计取舍</dt><dd>原始资料作为事实来源，SQLite FTS5 作为可重建索引；优先处理精确查询与证据位置。</dd></div><div><dt>可靠性边界</dt><dd>明确返回未找到、歧义和过期状态。通过计划与确认两步导入资料，建库成功后再原子发布。</dd></div></dl>
+				<div class="project-links"><a href="/blog/game-design-knowledge-mcp/">阅读设计与验证记录 →</a></div>
+			</div>
+		</article>
+	</section>
+
+	<section class="writing" aria-labelledby="writing-title">
+		<div class="section-heading"><p class="eyebrow">Engineering Notes</p><h2 id="writing-title">技术文章</h2><p>从项目背景、架构取舍到验证边界，进一步了解我的技术判断。</p></div>
+		<a class="reading-link" href="/blog/mmo-ten-thousand-player-multi-scene/"><span>游戏服务端架构</span><strong>万人同服、多场景 MMO 的架构设计</strong><span aria-hidden="true">↗</span></a>
+		<div class="actions"><a href="/blog/">浏览全部文章 →</a></div>
+	</section>
+</PageLayout>
+
+<style>
+	.intro { max-width: 860px; padding: 1rem 0 3rem; }
+	h1 { font-size: clamp(2.6rem, 6.5vw, 4.9rem); line-height: 1.2; }
+	.lead { max-width: 720px; margin-top: 1.75rem; color: var(--text-soft); font-size: 1.15rem; }
+	.actions, .project-links { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; margin-top: 1.5rem; }
+	.actions a, .project-links a { font-weight: 700; text-decoration: none; }
+	.primary { padding: .75rem 1rem; border-radius: 8px; background: var(--accent); color: white; }
+	:global([data-theme='dark']) .primary { color: #071a18; }
+	.expertise { display: flex; flex-wrap: wrap; gap: .75rem 2rem; padding: 1.5rem 0 0; margin: 2rem 0 0; border-top: 1px solid var(--border); list-style: none; color: var(--text-soft); font-size: .9rem; }
+	#projects { scroll-margin-top: 7rem; }
+	.section-heading { margin-bottom: 2rem; }
+	.section-heading .eyebrow { margin-bottom: .5rem; }
+	.section-heading > p:last-child:not(.eyebrow) { color: var(--text-soft); }
+	.project { display: grid; grid-template-columns: 1fr 1.5fr; gap: 3rem; padding: 2.5rem 0; border-top: 1px solid var(--border); }
+	.project-heading { display: flex; gap: 1rem; align-items: baseline; }
+	.number { color: var(--accent-strong); font-size: .9rem; font-variant-numeric: tabular-nums; }
+	.status { margin: 0 0 .75rem; color: var(--text-soft); font-size: .875rem; }
+	h3 { font-size: 1.8rem; }
+	.subtitle { color: var(--text-soft); }
+	dl { margin: 1.5rem 0; }
+	dl > div { margin-top: 1rem; }
+	dt { font-size: .9rem; font-weight: 700; }
+	dd { margin: .3rem 0 0; color: var(--text-soft); }
+	.writing { margin-top: 3rem; }
+	.reading-link { display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 1.5rem; padding: 1.5rem 0; border-block: 1px solid var(--border); text-decoration: none; }
+	.reading-link > span:first-child { color: var(--text-soft); font-size: .875rem; }
+	a:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 5px; }
+	@media (max-width: 760px) { .project { grid-template-columns: 1fr; gap: .5rem; } .reading-link { grid-template-columns: 1fr auto; gap: .5rem; } .reading-link > span:first-child { grid-column: 1 / -1; } }
+</style>
