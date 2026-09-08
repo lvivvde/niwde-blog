@@ -41,14 +41,3 @@ jobs:
           curl --fail --silent --show-error --location --max-time 20 https://yangjiexin.com/ | grep -Fq 'Niwde'
           curl --fail --silent --show-error --location --max-time 20 https://yangjiexin.com/search/ | grep -Fq '搜索'
           curl --fail --silent --show-error --location --max-time 20 https://yangjiexin.com/rss.xml | grep -Fq '<rss'
-
-      - name: Verify new blog after domain activation
-        if: vars.BLOG_DOMAIN_ENABLED == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl --fail --silent --show-error --location --max-time 20 https://niwde.com/ | grep -Fq 'Niwde'
-          curl --fail --silent --show-error --location --max-time 20 https://niwde.com/search/ | grep -Fq '搜索'
-          curl --fail --silent --show-error --location --max-time 20 https://niwde.com/rss.xml | grep -Fq '<rss'
-          curl --fail --silent --show-error --location --max-time 20 https://niwde.com/sitemap-index.xml | grep -Fq 'https://niwde.com/'
-          curl --fail --silent --show-error --head --max-time 20 https://yangjiexin.com/ | grep -Fiq 'x-robots-tag: noindex'

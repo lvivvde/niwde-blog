@@ -19,8 +19,7 @@ release_path="$site_root/releases/$release_id"
 prepared_path="$site_root/.prepared-$release_id"
 allowed_signers="/etc/niwde-blog/deploy-signing-allowed-signers"
 
-if [[ ! -d "$incoming_path" || ! -f "$incoming_path/portfolio/index.html" \
-	|| ! -f "$incoming_path/blog/index.html" \
+if [[ ! -d "$incoming_path" || ! -f "$incoming_path/index.html" \
 	|| ! -f "$incoming_path/.manifest.sha256" \
 	|| ! -f "$incoming_path/.manifest.sha256.sig" ]]; then
 	echo "Incoming release is incomplete: $incoming_path" >&2

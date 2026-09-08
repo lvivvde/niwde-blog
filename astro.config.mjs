@@ -1,15 +1,14 @@
 // @ts-check
 
 import mdx from '@astrojs/mdx';
-import sitemap from '@astrojs/sitemap';
 import { defineConfig, fontProviders } from 'astro/config';
 import { siteConfig } from './site.config.mjs';
 
 // https://astro.build/config
 export default defineConfig({
 	site: siteConfig.origin,
-	outDir: process.env.SITE_OUT_DIR || './dist',
-	integrations: [mdx(), ...(siteConfig.indexable ? [sitemap()] : [])],
+	outDir: './dist',
+	integrations: [mdx()],
 	fonts: [
 		{
 			provider: fontProviders.local(),

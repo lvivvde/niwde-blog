@@ -1,5 +1,5 @@
 ---
-import { GITHUB_URL, IS_PORTFOLIO, SITE_TITLE } from '../consts';
+import { GITHUB_URL, SITE_TITLE } from '../consts';
 import HeaderLink from './HeaderLink.astro';
 ---
 
@@ -10,7 +10,7 @@ import HeaderLink from './HeaderLink.astro';
 			<span>{SITE_TITLE}</span>
 		</a>
 		<div class="links">
-			<HeaderLink href="/">{IS_PORTFOLIO ? '作品集' : '首页'}</HeaderLink>
+			<HeaderLink href="/">作品集</HeaderLink>
 			<HeaderLink href="/blog">文章</HeaderLink>
 			<HeaderLink href="/categories">分类</HeaderLink>
 			<HeaderLink href="/search">搜索</HeaderLink>
