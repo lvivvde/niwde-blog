@@ -2,7 +2,6 @@
 
 Niwde 的个人技术博客，内容聚焦游戏后端、AI 开发、项目实验与工程复盘。
 
-- 公开博客（目标域名）：<https://niwde.com>
 - 简历作品集沿用原姓名域名，两站共用文章源、分别构建。
 - 项目：[RealmMesh](https://github.com/lvivvde/RealmMesh)
 - 框架：[Astro](https://astro.build/)
