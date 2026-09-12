@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build && pagefind --site dist && node scripts/verify-site.mjs",
+    "simulate:weighted-random": "python3 scripts/weighted_random/simulate.py",
+    "test:weighted-random": "python3 -m unittest discover -s scripts/weighted_random -p 'test_*.py' -v",
     "preview": "astro preview",
     "astro": "astro"
   },
