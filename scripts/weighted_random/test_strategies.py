@@ -5,16 +5,30 @@ import random
 import unittest
 
 from strategies import (
+    HIT,
+    MISS,
     DebtFeedbackSelector,
+    PseudoRandomBinary,
     RunStatistics,
     calibrate_initial_probability,
     doubling_hazard,
+    draw_dynamic_binary,
+    draw_dynamic_weighted,
+    draw_static_binary,
+    draw_static_weighted,
     expected_cycle_length,
     linear_hazard,
     long_run_hit_rate,
     normalize_weights,
 )
-from simulate import render_markdown, render_streak_svg, simulate_static
+from simulate import (
+    render_markdown,
+    render_streak_svg,
+    simulate_dynamic_binary,
+    simulate_dynamic_weighted,
+    simulate_static_binary,
+    simulate_static_weighted,
+)
 
 
 class ProbabilityTests(unittest.TestCase):
@@ -83,6 +97,39 @@ class DebtFeedbackTests(unittest.TestCase):
         self.assertEqual(restored.snapshot(), first.snapshot())
 
 
+class PublicModelTests(unittest.TestCase):
+    def test_static_binary_supports_independent_and_prd_draws(self) -> None:
+        self.assertTrue(draw_static_binary(0.5, lambda: 0.49))
+        self.assertFalse(draw_static_binary(0.5, lambda: 0.50))
+        prd = PseudoRandomBinary(0.5, linear_hazard)
+        self.assertIsInstance(draw_static_binary(0.5, lambda: 0.0, prd=prd), bool)
+        with self.assertRaises(ValueError):
+            draw_static_binary(0.4, lambda: 0.0, prd=prd)
+
+    def test_dynamic_binary_keeps_cumulative_probability_debt(self) -> None:
+        selector = DebtFeedbackSelector((HIT, MISS), math.inf)
+        counts = {HIT: 0, MISS: 0}
+        probabilities = (0.05, 0.10, 0.15)
+        rng = random.Random(19).random
+        for index in range(3_000):
+            hit = draw_dynamic_binary(
+                probabilities[index % 3], rng, selector=selector
+            )
+            counts[HIT if hit else MISS] += 1
+        self.assertEqual(counts[HIT], 300)
+        self.assertAlmostEqual(selector.snapshot()[HIT], 0.0, places=10)
+
+    def test_static_and_dynamic_weighted_entry_points_share_state_model(self) -> None:
+        selector = DebtFeedbackSelector(("A", "B", "C"), math.inf)
+        rng = random.Random(23).random
+        first = draw_static_weighted({"A": 3, "B": 3, "C": 4}, rng)
+        second = draw_dynamic_weighted(
+            {"A": 10, "B": 20, "C": 70}, rng, selector=selector
+        )
+        self.assertIn(first, ("A", "B", "C"))
+        self.assertIn(second, ("A", "B", "C"))
+
+
 class RunStatisticsTests(unittest.TestCase):
     def test_counts_maximal_hit_and_boundary_miss_segments(self) -> None:
         stats = RunStatistics(("A", "B", "C"))
@@ -100,20 +147,25 @@ class RunStatisticsTests(unittest.TestCase):
 
 class ReportTests(unittest.TestCase):
     def test_small_simulation_renders_markdown_and_svg(self) -> None:
-        results = simulate_static(100, 17)
+        static_binary = simulate_static_binary(100, 17)
+        dynamic_binary = simulate_dynamic_binary(100, 17)
+        static_weighted = simulate_static_weighted(100, 17)
+        dynamic_weighted = simulate_dynamic_weighted(100, 17)
         payload = {
             "generated_on": "2026-09-12",
             "seed": 17,
             "draws": 100,
-            "static": results,
-            "binary": [],
-            "dynamic": [],
+            "static_binary": static_binary,
+            "dynamic_binary": dynamic_binary,
+            "static_weighted": static_weighted,
+            "dynamic_weighted": dynamic_weighted,
             "calibration_table": [],
         }
 
         markdown = render_markdown(payload)
-        svg = render_streak_svg(results)
-        self.assertIn("静态 A/B/C：长期分布", markdown)
+        svg = render_streak_svg(static_weighted)
+        self.assertIn("模型一：固定二元概率", markdown)
+        self.assertIn("模型四：业务动态多类别权重", markdown)
         self.assertIn("<svg", svg)
         self.assertIn("最长连出", svg)
 

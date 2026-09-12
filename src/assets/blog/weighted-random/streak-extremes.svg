@@ -1,50 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="390" viewBox="0 0 1000 390">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="310" viewBox="0 0 1000 310">
 <rect width="100%" height="100%" fill="#101827" rx="18"/>
 <style>text{font-family:Inter,"Noto Sans SC",sans-serif;fill:#e5e7eb}.muted{fill:#9ca3af}.label{font-size:15px}.value{font-size:13px;font-weight:700}.title{font-size:23px;font-weight:700}</style>
-<text x="40" y="42" class="title">100 万次静态抽取中的最长极端序列</text>
+<text x="40" y="42" class="title">100 万次固定多类别抽取中的最长极端序列</text>
 <rect x="610" y="25" width="16" height="16" rx="3" fill="#60a5fa"/>
 <text x="634" y="39" class="label">最长连出</text>
 <rect x="750" y="25" width="16" height="16" rx="3" fill="#f59e0b"/>
 <text x="774" y="39" class="label">最长未出</text>
-<line x1="275.0" y1="76" x2="275.0" y2="350" stroke="#334155" stroke-width="1"/>
-<text x="275.0" y="370" text-anchor="middle" class="muted label">0</text>
-<line x1="362.8" y1="76" x2="362.8" y2="350" stroke="#334155" stroke-width="1"/>
-<text x="362.8" y="370" text-anchor="middle" class="muted label">5</text>
-<line x1="450.7" y1="76" x2="450.7" y2="350" stroke="#334155" stroke-width="1"/>
-<text x="450.7" y="370" text-anchor="middle" class="muted label">10</text>
-<line x1="538.5" y1="76" x2="538.5" y2="350" stroke="#334155" stroke-width="1"/>
-<text x="538.5" y="370" text-anchor="middle" class="muted label">15</text>
-<line x1="626.4" y1="76" x2="626.4" y2="350" stroke="#334155" stroke-width="1"/>
-<text x="626.4" y="370" text-anchor="middle" class="muted label">20</text>
-<line x1="714.2" y1="76" x2="714.2" y2="350" stroke="#334155" stroke-width="1"/>
-<text x="714.2" y="370" text-anchor="middle" class="muted label">25</text>
-<line x1="802.0" y1="76" x2="802.0" y2="350" stroke="#334155" stroke-width="1"/>
-<text x="802.0" y="370" text-anchor="middle" class="muted label">30</text>
-<line x1="889.9" y1="76" x2="889.9" y2="350" stroke="#334155" stroke-width="1"/>
-<text x="889.9" y="370" text-anchor="middle" class="muted label">35</text>
-<text x="255" y="118" text-anchor="end" class="label">独立加权随机</text>
+<line x1="275.0" y1="76" x2="275.0" y2="270" stroke="#334155" stroke-width="1"/>
+<text x="275.0" y="292" text-anchor="middle" class="muted label">0</text>
+<line x1="362.8" y1="76" x2="362.8" y2="270" stroke="#334155" stroke-width="1"/>
+<text x="362.8" y="292" text-anchor="middle" class="muted label">5</text>
+<line x1="450.7" y1="76" x2="450.7" y2="270" stroke="#334155" stroke-width="1"/>
+<text x="450.7" y="292" text-anchor="middle" class="muted label">10</text>
+<line x1="538.5" y1="76" x2="538.5" y2="270" stroke="#334155" stroke-width="1"/>
+<text x="538.5" y="292" text-anchor="middle" class="muted label">15</text>
+<line x1="626.4" y1="76" x2="626.4" y2="270" stroke="#334155" stroke-width="1"/>
+<text x="626.4" y="292" text-anchor="middle" class="muted label">20</text>
+<line x1="714.2" y1="76" x2="714.2" y2="270" stroke="#334155" stroke-width="1"/>
+<text x="714.2" y="292" text-anchor="middle" class="muted label">25</text>
+<line x1="802.0" y1="76" x2="802.0" y2="270" stroke="#334155" stroke-width="1"/>
+<text x="802.0" y="292" text-anchor="middle" class="muted label">30</text>
+<line x1="889.9" y1="76" x2="889.9" y2="270" stroke="#334155" stroke-width="1"/>
+<text x="889.9" y="292" text-anchor="middle" class="muted label">35</text>
+<text x="255" y="118" text-anchor="end" class="label">独立随机</text>
 <rect x="275" y="105" width="298.6" height="14" rx="4" fill="#60a5fa"/>
 <text x="580.6" y="117" class="value">17</text>
 <rect x="275" y="125" width="650.0" height="14" rx="4" fill="#f59e0b"/>
 <text x="932.0" y="137" class="value">37</text>
-<text x="255" y="166" text-anchor="end" class="label">有限负反馈 λ=0.25</text>
-<rect x="275" y="153" width="175.7" height="14" rx="4" fill="#60a5fa"/>
-<text x="457.7" y="165" class="value">10</text>
-<rect x="275" y="173" width="404.1" height="14" rx="4" fill="#f59e0b"/>
-<text x="686.1" y="185" class="value">23</text>
-<text x="255" y="214" text-anchor="end" class="label">有限负反馈 λ=1</text>
-<rect x="275" y="201" width="105.4" height="14" rx="4" fill="#60a5fa"/>
-<text x="387.4" y="213" class="value">6</text>
-<rect x="275" y="221" width="245.9" height="14" rx="4" fill="#f59e0b"/>
-<text x="527.9" y="233" class="value">14</text>
-<text x="255" y="262" text-anchor="end" class="label">有限负反馈 λ=4</text>
-<rect x="275" y="249" width="70.3" height="14" rx="4" fill="#60a5fa"/>
-<text x="352.3" y="261" class="value">4</text>
-<rect x="275" y="269" width="158.1" height="14" rx="4" fill="#f59e0b"/>
-<text x="440.1" y="281" class="value">9</text>
-<text x="255" y="310" text-anchor="end" class="label">最大欠账优先 λ=∞</text>
-<rect x="275" y="297" width="35.1" height="14" rx="4" fill="#60a5fa"/>
-<text x="317.1" y="309" class="value">2</text>
-<rect x="275" y="317" width="70.3" height="14" rx="4" fill="#f59e0b"/>
-<text x="352.3" y="329" class="value">4</text>
+<text x="255" y="173" text-anchor="end" class="label">有限负反馈 λ=1</text>
+<rect x="275" y="160" width="105.4" height="14" rx="4" fill="#60a5fa"/>
+<text x="387.4" y="172" class="value">6</text>
+<rect x="275" y="180" width="245.9" height="14" rx="4" fill="#f59e0b"/>
+<text x="527.9" y="192" class="value">14</text>
+<text x="255" y="228" text-anchor="end" class="label">最大欠账优先 λ=∞</text>
+<rect x="275" y="215" width="35.1" height="14" rx="4" fill="#60a5fa"/>
+<text x="317.1" y="227" class="value">2</text>
+<rect x="275" y="235" width="70.3" height="14" rx="4" fill="#f59e0b"/>
+<text x="352.3" y="247" class="value">4</text>
 </svg>

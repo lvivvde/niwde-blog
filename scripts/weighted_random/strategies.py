@@ -15,6 +15,16 @@ from typing import TypeVar
 
 Label = TypeVar("Label", bound=str)
 RandomSource = Callable[[], float]
+HIT = "hit"
+MISS = "miss"
+
+
+def validate_probability(probability: float) -> float:
+    """Validate and return a binary-event probability."""
+
+    if not math.isfinite(probability) or not 0 <= probability <= 1:
+        raise ValueError("probability must be finite and in [0, 1]")
+    return probability
 
 
 def normalize_weights(weights: Mapping[Label, float]) -> dict[Label, float]:
@@ -218,6 +228,65 @@ class DebtFeedbackSelector:
             label: math.exp(score - largest) for label, score in log_scores.items()
         }
         return weighted_choice(adjusted, rng)
+
+
+def draw_static_binary(
+    probability: float,
+    rng: RandomSource,
+    *,
+    prd: PseudoRandomBinary | None = None,
+) -> bool:
+    """Draw a fixed-probability binary event, optionally using calibrated PRD."""
+
+    probability = validate_probability(probability)
+    if prd is None:
+        return rng() < probability
+    if not math.isclose(prd.target_rate, probability, rel_tol=0.0, abs_tol=1e-15):
+        raise ValueError("PRD target_rate must match the static probability")
+    return prd.draw(rng)
+
+
+def draw_dynamic_binary(
+    current_probability: float,
+    rng: RandomSource,
+    *,
+    selector: DebtFeedbackSelector | None = None,
+) -> bool:
+    """Draw a binary event whose base probability is supplied for this attempt."""
+
+    current_probability = validate_probability(current_probability)
+    if selector is None:
+        return rng() < current_probability
+    outcome = selector.draw(
+        {HIT: current_probability, MISS: 1.0 - current_probability}, rng
+    )
+    return outcome == HIT
+
+
+def draw_static_weighted(
+    weights: Mapping[Label, float],
+    rng: RandomSource,
+    *,
+    selector: DebtFeedbackSelector | None = None,
+) -> Label:
+    """Draw from a fixed multi-category weight map."""
+
+    if selector is None:
+        return weighted_choice(weights, rng)
+    return selector.draw(weights, rng)
+
+
+def draw_dynamic_weighted(
+    current_weights: Mapping[Label, float],
+    rng: RandomSource,
+    *,
+    selector: DebtFeedbackSelector | None = None,
+) -> Label:
+    """Draw from the multi-category weights supplied for this attempt."""
+
+    if selector is None:
+        return weighted_choice(current_weights, rng)
+    return selector.draw(current_weights, rng)
 
 
 class RunStatistics:
