@@ -1,48 +1,34 @@
 ---
-// 课程页 /ai-course/：按 Issue #18 规格实现的「讲师手册」信息架构（#17 选定变体 C）；内容仅取自已确认决议（#16/#15/#13）与研究报告。
+// 页面 /ai-course/：面向课堂听众的大屏内容页；按我自己的编程工作流线性展开。
 import PageLayout from '../layouts/PageLayout.astro';
 
 const checkpoints = [
-	{ n: 1, name: '需求对齐', act: '第一幕', time: '0–8', priority: 'Core' },
-	{ n: 2, name: '表达目标', act: '第二幕', time: '8–23', priority: 'Core（J-space 细节 Optional）' },
-	{ n: 3, name: '获取上下文', act: '第三幕', time: '23–40', priority: 'Core（工具限制详单 Optional）' },
-	{ n: 4, name: '设计验证', act: '第四幕 A', time: '40–63', priority: 'Core' },
-	{ n: 5, name: 'TDD 实现', act: '第四幕 A', time: '40–63', priority: 'Core' },
-	{ n: 6, name: '集成验证', act: '第四幕 A/B', time: '40–75', priority: 'Core' },
-	{ n: 7, name: 'Code Review', act: '第五幕', time: '75–85', priority: 'Core' },
+	{ n: 1, name: '需求对齐', summary: '表达目标、成功标准，并提前设计验证回路' },
+	{ n: 2, name: 'AI 的上下文采集', summary: '只提供最小、充分、高信号的证据' },
+	{ n: 3, name: 'AI 写代码', summary: '由验证标准驱动，一步一步完成代码' },
+	{ n: 4, name: 'AI 自验证', summary: '按约定的验证回路自动检查交付结果' },
+	{ n: 5, name: 'Code Review', summary: '分两轴查：写法合不合规范，功能有没有做对' },
 ];
 
-const rhythm = [
-	{ time: '0–8', act: '第一幕', title: '为什么 AI 编程需要工程方法', priority: 'Core', points: '开场判断、三个主题与七个检查点、完整 Goal Brief 与浅模块悬念' },
-	{ time: '8–23', act: '第二幕', title: '提示词工程', priority: 'Core（J-space 细节 Optional）', points: 'Goal Brief、直接表达目标、无关禁止指令、J-space 边界、口头互动' },
-	{ time: '23–40', act: '第三幕', title: '上下文工程', priority: 'Core（工具限制详单 Optional）', points: '最小高信号上下文、五层模型、code-review-graph 静态演示、上下文选择互动' },
-	{ time: '40–63', act: '第四幕 A', title: '反馈循环工程', priority: 'Core', points: '行为清单、外内双循环、四轮 TDD、集成边界、速度 × 可信度' },
-	{ time: '63–75', act: '第四幕 B', title: '深模块与浅模块', priority: 'Core', points: '信息隐藏、模块深度、活动奖励领取对比、纠正常见误解' },
-	{ time: '75–85', act: '第五幕', title: 'Code Review 与完整工作流', priority: 'Core', points: '缺陷互动、交付证据链、AI/人的责任、回扣开场' },
-	{ time: '85–90', act: '总结', title: '总结与问答', priority: 'Core', points: '七个检查点、明日行动、模板与延伸资料入口' },
+const promptContract = [
+	{ key: 'Goal', title: '目标', text: '描述要改变的用户或业务结果，先不定代码步骤。' },
+	{ key: 'Success', title: '成功标准', text: '把“做好”写成可观察、可证伪的行为。' },
+	{ key: 'Bounds', title: '边界', text: '明确必须保持、允许的副作用，以及本次不做什么。' },
+	{ key: 'Context', title: '上下文边界', text: '先定义需要哪些事实、哪些来源可信；具体的采集放到下一步。' },
+	{ key: 'Output', title: '输出契约', text: '约定交付物、结构、长度和必须附带的证据。' },
+	{ key: 'Unknowns', title: '未知项协议', text: '低影响项说明假设；关键缺口先提问；高风险动作必须停止。' },
+	{ key: 'Verify', title: '验证回路', text: '提前约定运行哪些检查、什么结果算通过，以及怎样报告未验证风险。' },
 ];
 
-const themes = ['提示词工程', '上下文工程', '反馈循环工程'];
-
-const promptBad = `不要写得啰嗦。
-不要用太多标题。
-不要重复需求。
-不要讨论缓存、UI、微服务和我们以前失败过的方案。
-不要擅自修改接口。`;
-
-const promptGood = `目标：给出“活动奖励领取”能力的最小实现方案。
-
-输出：
-- 先概述方案，再列验证证据；总计不超过 600 字。
-- 只讨论领取模块、资格来源、奖励系统和领取记录。
-- 保持现有公开接口兼容；已有调用方无需修改。
-
-必要边界：
-- 奖励效果至多发生一次。
-- 结果未知时返回 RetryLater，后续重试先核对既有结果。`;
+const promptExtensions = [
+	{ title: '示例与边界案例', text: '用“输入 → 期望行为”说明正确处理；反例优先变成测试用例。' },
+	{ title: '输出是接口', text: '人读结果约定结构；机器读结果优先使用 schema 或 Structured Outputs。' },
+	{ title: '数据不是指令', text: '区分任务要求与网页、Issue、工具输出中的不可信内容，声明权限边界。' },
+	{ title: 'Prompt 也要回归', text: '固定样本集，一次只改一个主要变量；模型升级后重新运行评测。' },
+];
 
 const contextLayers = [
-	{ layer: '目标上下文', q: '为什么做、什么算成功、边界是什么？', src: 'Goal Brief、Issue/Spec、验收标准' },
+	{ layer: '目标上下文', q: '为什么做、什么算成功、边界是什么？', src: '需求 Spec、Issue、验收标准' },
 	{ layer: '结构上下文', q: '改动点与哪些调用者、依赖、测试、流程相连？', src: '代码图、LSP、grep、目录结构' },
 	{ layer: '行为上下文', q: '代码当前真实做什么？', src: '源码、配置、schema、运行日志' },
 	{ layer: '验证上下文', q: '怎样证伪或确认修改？', src: '单元/集成测试、类型检查、监控' },
@@ -50,243 +36,159 @@ const contextLayers = [
 ];
 
 const demoSteps = [
-	'Goal Brief：重复请求不能重复发奖',
-	'图查询：领取入口 → 幂等模块 → 存储调用 → 调用者 → 相关测试',
-	'选择 3–6 个高信号文件，而不是打开整个仓库',
-	'回读源码与配置，确认图中的边',
-	'Git / ADR / Issue：为什么幂等键由这一层负责？',
-	'运行单元 + 集成测试，形成可交付证据',
+	'从需求 Spec 提取目标、边界和待回答的问题',
+	'从入口追到调用者、依赖、数据与相关测试',
+	'选择 3–6 个高信号文件，不必打开整个仓库',
+	'回读源码、配置与 schema，确认当前真实行为',
+	'用 Git / ADR / Issue 补齐设计原因与历史约束',
+	'记录证据、未知项和冲突，再进入 AI 写代码',
 ];
 
 const contextPicks = [
-	{ label: 'Goal Brief', good: true },
-	{ label: '领取模块的公开接口', good: true },
-	{ label: '调用该接口的入口', good: true },
-	{ label: '资格来源契约', good: true },
-	{ label: '奖励系统契约及超时语义', good: true },
-	{ label: '领取记录的数据约束', good: true },
+	{ label: '需求 Spec', good: true },
+	{ label: '相关模块的公开接口', good: true },
+	{ label: '调用入口与关键调用者', good: true },
+	{ label: '直接依赖的契约与错误语义', good: true },
+	{ label: '相关数据约束与配置', good: true },
 	{ label: '相关测试', good: true },
-	{ label: '一条与幂等或失败处理有关的历史决策', good: true },
-	{ label: '活动配置后台目录', good: false },
-	{ label: '背包系统代码', good: false },
-	{ label: '反作弊系统代码', good: false },
-	{ label: '补发与回滚流程文档', good: false },
+	{ label: '一条仍有效的历史决策', good: true },
+	{ label: '与目标无直接关系的目录', good: false },
+	{ label: '未经筛选的整仓源码', good: false },
+	{ label: '全部历史日志与讨论', good: false },
+	{ label: '本次明确排除的系统资料', good: false },
 ];
 
-const roles = [
-	{ name: '玩家客户端', what: '可能重复或并发发起领取请求' },
-	{ name: '领取模块', what: '对外提供稳定的领取入口' },
-	{ name: '资格来源', what: '在首次有效领取请求时给出权威资格判定' },
-	{ name: '奖励系统', what: '实际发放奖励，可能成功后响应丢失或超时' },
+const contextToolNotes = [
+	{ k: 'Tree-sitter 解析', v: '把仓库解析成 AST，再建成节点（函数、类、导入）与边（调用、继承、测试覆盖）的代码图' },
+	{ k: '沿调用链取子图', v: '从入口点追踪执行流与影响半径，只把相关子图交给模型' },
+	{ k: '仓库内持久化', v: '图存于仓库内本地 SQLite，按文件哈希增量重建，不必每次全量索引' },
 ];
 
-const tddRounds = [
-	{ n: 1, name: 'Ineligible', red: '无资格请求必须返回明确原因，且不发放奖励（SC-2）', green: '资格判定先行：不符合资格直接返回 Ineligible 及原因', refactor: '资格规则集中到领取模块内部，调用方不重复判断' },
-	{ n: 2, name: '首次 Claimed', red: '有资格的首次请求成功领取，并包含奖励引用（SC-1）', green: '核对资格 → 发放奖励 → 返回 Claimed 与奖励引用', refactor: 'Claimed 成为携带奖励引用的稳定最终结果' },
-	{ n: 3, name: '重复与并发', red: '串行重复请求返回同一结果；并发请求只有一次实际发奖（SC-3 / SC-4）', green: '先核对既有结果，发放与记录收敛在同一模块内', refactor: '幂等规则集中到一处，调用方无需自行查重' },
-	{ n: 4, name: 'RetryLater 与安全重试', red: '奖励系统响应未知时返回 RetryLater；重试最终收敛到原结果（SC-5）', green: '结果未知不是失败；重试先核对既有结果再行动', refactor: '超时语义由奖励系统契约定义，领取模块对调用方隐藏' },
+const ctxMix = [
+	{ label: '系统提示与指令文件', pct: 12, tone: 't1', note: '行为约束、项目 CLAUDE.md 等，启动即加载' },
+	{ label: '工具与 MCP 定义', pct: 10, tone: 't2', note: '工具名与服务器说明先进来，用到具体工具才展开' },
+	{ label: '技能描述', pct: 8, tone: 't3', note: '每个技能正文上限 5,000 tokens，总计 25,000' },
+	{ label: '记忆与项目文档', pct: 15, tone: 't4', note: '自动记忆取前 200 行或 25KB，先到为准' },
+	{ label: '对话消息', pct: 40, tone: 't5', note: '你的提问、文件读取、工具输出、分析与编辑' },
+	{ label: '留白', pct: 15, tone: 't6', note: '预留给后续检索与生成的空间' },
 ];
 
-const shallowCode = `function claimReward(player, event):
-  if not eligibility.check(player, event):      # 查资格
-    return Ineligible(reason)
-  existing = claimStore.find(player, event)     # 查领取记录
-  if existing:
-    return existing
-  reward = rewardService.grant(player, event)   # 发奖
-  claimStore.save(player, event, reward)        # 保存结果
-  # 超时后怎么办？调用方自己决定要不要重发
-  return reward`;
+const ctxCacheNotes = [
+	{ k: '一段事，留在同一个会话', v: '前缀不变，缓存才能一直命中；一个需求单开一堆会话，等于把前缀拆散重写' },
+	{ k: '别把会话晾太久', v: '默认寿命只有几分钟量级；开个会、摸鱼几十分钟回来，热前缀已经冷了' },
+	{ k: '续聊不是免费的', v: '缓存掉了再续，前面那一段向量要重新算一遍，延迟和写入成本一起回来' },
+];
 
-const deepCode = `result = rewardClaim.claim(player, event)
+const tddWhy = [
+	{ k: '把大块切成小块', v: '一次只让一条检查变绿，大模块被迫拆开，留下能单独替换、单独验证的接缝' },
+	{ k: '接缝让测试和阅读都容易', v: '接口就是测试面；接缝清楚，改一处的影响范围看得见，后来的人和 AI 都读得下去' },
+	{ k: '压住 AI 的过度设计', v: '没有检查会失败的方法就没有存在理由，AI 不再顺手补一堆没人要的包装方法' },
+];
 
-# 领取模块只暴露一个入口和三种结果：
-#   Claimed    稳定最终结果，含奖励引用
-#   Ineligible 稳定最终结果，含可解释原因
-#   RetryLater 结果暂时无法确认，可安全重试
-# 资格、幂等、并发控制、奖励调用和结果核对都在内部`;
+const agentRoles = [
+	{ role: '父 Agent', duty: '定目标、拆任务、写下要交出去的那段摘要、验收结果；全局视野和最终判断留在这一层' },
+	{ role: '子 Agent', duty: '只干一件能被验收的事；在自己的窗口里翻日志、读文件、试错，只把结论带回来' },
+];
 
-const filledGoalBrief = `# Goal Brief：活动奖励领取
+const agentRules = [
+	{ k: '子 Agent 用同档模型', v: '配置上可以直接继承主对话的模型。用弱档省下的差价，往往以“父 Agent 再把结果审一遍、甚至重做”还回去' },
+	{ k: '交付物是一份短 MD', v: '只写结论、证据位置和改动点，不粘贴文件内容；子 Agent 的作用就是把文件挡在主对话外面' },
+	{ k: '父 Agent 只传一份任务摘要', v: '子 Agent 另起一个干净窗口，看不到主对话的历史、已调用的技能和已读过的文件' },
+	{ k: '规则和记忆分开放', v: '项目指令文件会跟着每个子 Agent 进去，自动记忆默认不会；想让一条规则传下去就写进指令文件' },
+];
 
-## 背景 / Why now
+const integrationStacks = [
+	{ lang: 'Lua', tools: 'Busted · luaunit · Telescope' },
+	{ lang: 'C++', tools: 'GoogleTest · Catch2 · doctest' },
+	{ lang: 'Rust', tools: 'cargo test（内置）' },
+	{ lang: 'Go', tools: 'testing · net/http/httptest（内置）' },
+	{ lang: 'Python', tools: 'pytest' },
+	{ lang: 'JavaScript / TypeScript', tools: 'Vitest · Jest' },
+	{ lang: 'Java', tools: 'JUnit 5' },
+	{ lang: 'C# / .NET', tools: 'xUnit · NUnit' },
+];
 
-活动上线后玩家需要领取活动奖励；重复或并发请求可能重复发奖，结果不可预期。
+const integrationCitizens = [
+	{ k: 'Rust 把它放进独立目录', v: '集成测试写在 tests/ 下，编译成独立的 crate，只能走公开接口。官方定义：这类测试「entirely external to your library」' },
+	{ k: 'Go 允许独立的外部测试包', v: '测试文件可以放在带 _test 后缀的包里，和被测包分开，只能看见导出的标识符' },
+	{ k: 'Java 给它独立的构建阶段', v: 'Maven 用 Failsafe 插件在 integration-test 与 verify 阶段跑集成测试，与跑单元测试的 Surefire 分开，mvn verify 才触发' },
+];
 
-## 目标 / Outcome
+const tddLoop = [
+	{ k: '红', v: '先写一个会失败的检查。一条从没失败过的检查，你没有证据说明它真的在测东西' },
+	{ k: '绿', v: '写刚好够用的实现让它变绿；没有检查撑腰的代码，就是没被验证过的代码' },
+	{ k: '重构', v: '在检查全绿的前提下改结构，改完还绿说明行为没变。这一步的底气全部来自上一步留下的检查' },
+];
 
-每个满足活动资格的玩家，对同一活动只能成功领取一次奖励；客户端可以安全重试，并获得明确、可解释且一致的结果。
+const crAxes = [
+	{
+		tag: 'Standard · 规范',
+		name: '写法是否和这个仓库一致',
+		q: '这段改动放在这里，像不像这个仓库自己写的？',
+		facts: [
+			{ k: '拿什么判', v: '仓库里写下来的规范文档、语言的 style guide，再加一份坏味道清单兜底' },
+			{ k: '要什么上下文', v: '只要这段 diff 和规范来源，不需要需求文档' },
+			{ k: '谁来做', v: '一半能交给工具（格式化、lint）；剩下的是判断题，交给子 Agent 机械扫一遍' },
+			{ k: '抓不住', v: '改动有没有满足需求。规范全对，功能照样可以是错的' },
+		],
+	},
+	{
+		tag: 'Spec · 功能',
+		name: '是否实现了功能需求',
+		q: '需求 Spec 里那几条成功标准，这段改动真的做成了吗？',
+		facts: [
+			{ k: '拿什么判', v: '需求 Spec 的成功标准，和 Verification Plan 承诺的通过证据' },
+			{ k: '要什么上下文', v: '需求、验证证据、改动，三样缺一不可' },
+			{ k: '谁来做', v: '子 Agent 给出 Recommendation，主 Agent 汇总，人做最终判断，这个责任交不出去' },
+			{ k: '抓不住', v: '写法。功能全对，代码也可以烂到没人敢改' },
+		],
+	},
+];
 
-## 成功标准 / Success Criteria
+const crDispatch = [
+	{ k: '主 Agent 派发', v: '同一份 diff 派给两个子 Agent，各自只带自己那一轴要的上下文：一个只拿 diff 和规范来源，一个只拿需求、验证证据和 diff' },
+	{ k: '子 Agent 各审一轴', v: '规范那条只报写法问题，功能那条只报需求问题，各交一份 Findings 报告，互不掺和' },
+	{ k: '主 Agent 汇总', v: '两份报告合成一张清单，去重、判严重性，再交给人做最终判断' },
+];
 
-- SC-1：有资格的首次请求成功领取
-- SC-2：无资格时返回明确原因且不发奖
-- SC-3：串行重复请求返回同一结果且不重复发奖
-- SC-4：两个并发请求最终只有一次实际发奖
-- SC-5：奖励系统响应未知后，安全重试最终收敛到原结果
-
-## 必须保持 / Constraints
-
-- 对玩家可观察到的奖励效果至多发生一次；不宣称未经限定的 Exactly Once
-- AlreadyClaimed 不作为错误或独立结果
-- 领取成功后，资格变化不撤销结果
-
-## 不在范围 / Out of Scope
-
-- 账号多角色、跨服、时区、背包已满
-- 补发与回滚、反作弊、奖励配置后台、活动生命周期管理
-
-## 未知项 / Unknowns
-
-- 无`;
-
-const tplGoalBrief = `# Goal Brief：<任务名称>
-
-<!-- 由人与 AI 在编码前共同确认；不要填写文件名、类名或逐行修改方案。 -->
-
-## 背景 / Why now
-
-<!-- 最多两句话：现在存在什么问题，为什么值得解决？ -->
-
-## 目标 / Outcome
-
-<!-- 一个可观察的用户或业务结果。 -->
-
-## 成功标准 / Success Criteria
-
-- SC-1：<可观察、可验证的行为>
-- SC-2：<可观察、可验证的行为>
-
-## 必须保持 / Constraints
-
-- <兼容性、安全、数据或业务边界>
-
-## 不在范围 / Out of Scope
-
-- <本次明确不解决的事项>
-
-## 未知项 / Unknowns
-
-- <需要调查或由人决定的问题；没有则写“无”>`;
-
-const tplVerificationPlan = `# Verification Plan：<任务名称>
-
-<!-- 每项验证必须追溯到成功标准。不要用覆盖率代替行为证据。 -->
-
-## 成功标准映射
-
-| 成功标准 | 主要风险 | 验证方式与层级 | 什么结果算通过 |
-| --- | --- | --- | --- |
-| SC-1 | <可能怎样失败> | <单元/窄集成/验收/静态检查/人工观察> | <可观察证据> |
-| SC-2 | <可能怎样失败> | <验证方式与层级> | <可观察证据> |
-
-## 反馈顺序 / Feedback Order
-
-1. <最先运行的快速、可信检查>
-2. <下一层边界验证>
-3. <最终验收或宽范围验证>
-
-## 最终门槛 / Final Gate
-
-- 测试：<命令或检查方式>
-- 构建与静态检查：<命令或检查方式>
-- 真实边界：<使用真实依赖或可信替身验证什么>
-- 人工观察：<仍需由人确认什么>
-
-## 未验证风险 / Unverified Risks
-
-- <尚未运行、无法复现或需要专家确认的事项>`;
-
-const tplCodeReview = `# Code Review：<变更名称>
-
-<!--
-输入：Goal Brief、Verification Plan、代码差异和实际验证输出。
-先报告 Findings。不得编造未运行的测试或不存在的证据。
--->
-
-## Findings
-
-### [P0–P3] <简短、可行动的标题>
-
-- 失败场景：<在什么条件下会发生什么错误>
-- 位置：<相关代码或设计位置>
-- 证据：<代码、测试输出、规范或已确认原则>
-- 影响标准：<SC-编号>
-- 建议方向：<说明需要满足的行为，不要求逐行指定实现>
-
-<!-- 如果没有 Finding，明确写“未发现阻塞性问题”。 -->
-
-## 成功标准追踪
-
-| 成功标准 | 状态 | 证据 |
-| --- | --- | --- |
-| SC-1 | Met / Not met / Unknown | <对应实现和验证结果> |
-| SC-2 | Met / Not met / Unknown | <对应实现和验证结果> |
-
-## 验证证据
-
-| 检查 | 结果 | 证据 |
-| --- | --- | --- |
-| <测试或构建> | Passed / Failed / Not run / Unknown | <实际输出或原因> |
-
-## 模块与风险
-
-- 调用方是否被迫理解内部流程或调用顺序？
-- 复杂度和易变决策是否被合适的模块隐藏？
-- 是否存在并发、重试、数据、安全或回归风险？
-- 测试是否真的能在行为被破坏时失败？
-
-## 未知项与专家介入
-
-- <缺少的上下文、无法验证的假设或需要的领域专家>
-
-## AI Recommendation
-
-Approve / Request changes / Needs human specialist
-
-<一句话说明理由>
-
-## Human Decision
-
-Approve / Request changes / Deferred
-
-<负责人填写最终决定和理由>`;
-
-const templates = [
-	{ id: 'tpl-goal', name: 'Goal Brief', desc: '定义目标、成功标准和边界；不得包含文件名、类名或逐行修改方案。', body: tplGoalBrief },
-	{ id: 'tpl-vp', name: 'Verification Plan（验证计划）', desc: '把每条成功标准映射为验证方法和通过证据；测试是核心，但构建、静态检查、真实边界和人工观察也属于交付证据。', body: tplVerificationPlan },
-	{ id: 'tpl-cr', name: 'Code Review', desc: '回到前两份模板核对证据闭环；AI 只给出 Recommendation，Human Decision 才是最终批准。', body: tplCodeReview },
+const crStdSources = [
+	{ k: '仓库自己写下来的', v: 'CONTRIBUTING.md、CODING_STANDARDS.md 这类文档。它最优先，和语言通用风格冲突时以它为准' },
+	{ k: '语言的 style guide', v: '仓库没写明的，看语言或社区的 style guide；连它也没规定，就跟周边已有代码保持一致' },
+	{ k: '坏味道清单兜底', v: '前两层都没覆盖的，用一份固定的代码坏味道清单兜底（Fowler《重构》第 3 章那批，如重复代码、发散式变化、夸夸其谈通用性）。Fowler 自己写的定义是「smells don\'t always indicate a problem」，所以每条都只是“疑似”，推翻不了上面两层' },
 ];
 
 // 每组资料的摘要 / 证据等级 / 版本日期 / 适用边界，内容取自三份研究报告（#14/#12/#11）。
 const resources = [
 	{
-		name: '提示词与 J-space',
-		supports: '先说目标，再补必要边界；点名无关概念可能提高其内部显著性，但不能简化为“不要对 AI 说不要”。',
+		name: 'Prompt Engineering',
+		supports: '用结果、成功标准、边界、输出契约和停止条件定义任务；靠评测迭代来找写法，别指望一条永久有效的“神奇提示词”。',
 		links: [
-			{ t: 'Verbalizable Representations Form a Global Workspace in Language Models', h: 'https://www.transformer-circuits.pub/2026/workspace/index.html' },
-			{ t: 'OpenAI: prompting best practices', h: 'https://help.openai.com/en/articles/6654000-best-practices-for-prompting-chatgpt' },
-			{ t: 'ICML 2023: distracted by irrelevant context', h: 'https://proceedings.mlr.press/v202/shi23a.html' },
-			{ t: 'Nature 2025: task-specific guardrails', h: 'https://www.nature.com/articles/s41586-025-09505-x' },
+			{ t: 'OpenAI: prompting best practices', h: 'https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.5' },
+			{ t: 'OpenAI: evaluation best practices', h: 'https://developers.openai.com/api/docs/guides/evaluation-best-practices' },
+			{ t: 'Anthropic: prompting best practices', h: 'https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices' },
+			{ t: 'Google: prompt design strategies', h: 'https://ai.google.dev/gemini-api/docs/prompting-strategies' },
 		],
 		detail: {
-			summary: '无关上下文会降低部分 LLM 任务的表现（ICML 2023，数学题设定）；强而具体的任务相关禁止项可以成为有效护栏（Nature 2025，欺骗场景）；点名概念可提高其在 Claude 内部表征（J-space）的显著性（Anthropic 2026 第一方机制研究）。',
-			grade: 'ICML 2023 与 Nature 2025 为同行评审的直接行为研究，较强；J-space 为第一方机制实验，中等；「do not mention X」的 token 概率反弹来自跨九模型预印本，初步。',
-			dates: 'ICML 2023（PMLR 202）；Nature 646, 126–134（2025）；Transformer Circuits 2026（未声明同行评审）；OpenAI 实践指南为在线文档，访问于 2026-09-10。',
-			bounds: '不能推广为「禁止式提示必然污染输出」；J-space 是 2026 年特定方法定义的新术语，跨架构普遍性未建立；人类「白熊效应」只作类比；安全、兼容与数据硬边界必须保留。',
+			summary: '三家当前官方指南都强调清晰具体的指令、输出约束与示例。OpenAI 和 Anthropic 都把成功标准与评测放在提示词优化之前，需求对齐因此能直接产出后续自验证要用的判断标准。',
+			grade: '模型厂商的一方产品与工程指南，适合说明当前实践；不是独立对照实验，也不能保证某个写法跨模型永久有效。',
+			dates: '在线文档，复核于 2026-09-14；模型行为和具体提示技巧可能随版本变化。',
+			bounds: '结构化提示不能替代真实权限控制、工具约束和测试；机器消费的复杂输出应优先使用 Structured Outputs 或 schema；模型升级后应重新运行评测。',
 		},
 	},
 	{
 		name: '上下文工程',
-		supports: '上下文是有限的注意力预算；结构图帮助缩小阅读范围，但结论仍需回读源码并运行测试。',
+		supports: '标称窗口是容量上限，和有效利用率是两回事；优先维护高信号工作集，并把目标与决策写进仓库文档。',
 		links: [
+			{ t: 'Lost in the Middle（TACL 2024）', h: 'https://aclanthology.org/2024.tacl-1.9/' },
 			{ t: 'Anthropic: Effective context engineering for AI agents', h: 'https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents' },
-			{ t: 'code-review-graph（GitHub）', h: 'https://github.com/tirth8205/code-review-graph' },
+			{ t: 'OpenAI: Harness engineering', h: 'https://openai.com/index/harness-engineering/' },
+			{ t: 'code-review-graph：把仓库解析成调用链图的 MCP', h: 'https://github.com/tirth8205/code-review-graph' },
 		],
 		detail: {
-			summary: '上下文工程是持续策划完整上下文状态：目标最小、充分、高信号，按需逐步检索（Anthropic 工程指南）；code-review-graph 用 Tree-sitter 建立持久代码结构图，按调用、依赖、测试与影响范围缩小 AI 需要读取的代码。',
-			grade: 'Anthropic 为厂商工程指南；code-review-graph 为第三方开源工具及其官方文档（Usage / FAQ / Security），非评审研究。',
-			dates: '两份均为在线文档，访问于 2026-09-10；工具以仓库当前版本为准。',
-			bounds: '图是索引，不是源码事实本身；「找到相关测试」不等于覆盖充分；不替代 Git 历史与决策记录；benchmark 不能当成普遍承诺；结构简单的场景直接搜索更省事；默认 local-first，注意可选网络调用的风险面。',
+			summary: 'Lost in the Middle 发现部分模型在多文档问答和检索任务中呈现位置敏感的 U 形表现；Anthropic 建议用压缩与结构化笔记维持长任务；OpenAI 的工程实践把 docs 作为事实来源，并用短入口文件指向深层文档。代码图 MCP 把仓库解析成节点与边的图，让代理沿调用链只取相关子图。',
+			grade: 'Lost in the Middle 为 TACL 论文；Anthropic 与 OpenAI 为厂商工程实践；code-review-graph 为第三方开源工具，其 token 效率与影响准确率是作者自测数据，非独立评测。',
+			dates: '论文发表于 TACL 2024；在线工程文档与工具仓库复核于 2026-09-15；工具以仓库当前版本为准。',
+			bounds: '不能据此断言 20 万窗口的模型普遍强于 100 万窗口的模型；20 万只是我这里的一个可控工作集示例。文档也不会自动进入上下文，必须由代理回读、检索或由系统注入。工具自测的 token 节省不是对本团队代码库的承诺值。',
 		},
 	},
 	{
@@ -304,14 +206,32 @@ const resources = [
 		name: '双循环与集成测试',
 		supports: '外层验收守住业务目标，内层单元快速驱动实现；集成测试按具体边界选择。',
 		links: [
-			{ t: 'Freeman/Pryce: figures', h: 'https://www.growing-object-oriented-software.com/figures.html' },
+			{ t: 'Freeman/Pryce: figures', h: 'https://growing-object-oriented-software.com/figures.html' },
 			{ t: 'Martin Fowler: Integration Test', h: 'https://martinfowler.com/bliki/IntegrationTest.html' },
 		],
 		detail: {
 			summary: '嵌套双循环：外层验收测试描述端到端能力，内层单元测试以更快步幅驱动实现（Freeman & Pryce 2009）；集成测试的核心是验证独立构建的单元连接后是否正确工作，先说明验证哪条边界、用真实依赖还是可信替身（Fowler）。flaky 测试会让人和 AI 都无法从失败中可靠定位（Google 2016）。',
 			grade: '经典工程著作与文章；DevEx 框架（CACM 2023）为「为什么短反馈重要」提供研究框架。',
 			dates: 'GOOS 2009；Integration Test 2018（2021 更新）；Flaky Tests at Google 2016。',
-			bounds: '行业对 unit/integration 的定义并不统一，课程不给出固定测试比例；Google 的具体比例来自其 2016 年超大规模体系，不能外推；替身是否忠实需要契约测试或针对真实实现校验。',
+			bounds: '行业对 unit/integration 的定义并不统一，我这里不给出固定测试比例；Google 的具体比例来自其 2016 年超大规模体系，不能外推；替身是否忠实需要契约测试或针对真实实现校验。',
+		},
+	},
+	{
+		name: '测试框架与集成测试工具',
+		supports: '没有专门的“集成测试框架”，单元与集成共用同一批 runner；分界在被测范围，Testcontainers 一类工具负责准备真实依赖。',
+		links: [
+			{ t: 'Busted（Lua 测试框架）', h: 'https://github.com/lunarmodules/busted' },
+			{ t: 'GoogleTest（C++ 测试框架）', h: 'https://github.com/google/googletest' },
+			{ t: 'Rust Book: Test Organization（tests/ 集成测试）', h: 'https://doc.rust-lang.org/book/ch11-03-test-organization.html' },
+			{ t: 'Go: testing 包文档（_test 外部测试包）', h: 'https://pkg.go.dev/testing' },
+			{ t: 'Maven Failsafe Plugin（集成测试阶段）', h: 'https://maven.apache.org/surefire/maven-failsafe-plugin/' },
+			{ t: 'Testcontainers', h: 'https://testcontainers.com/' },
+		],
+		detail: {
+			summary: 'Busted、GoogleTest、Catch2 的官方定位都是单元测试框架。把集成测试做成一等公民的是语言和构建工具：Rust 的 tests/ 目录编译成独立 crate、只走公开接口；Go 允许 _test 后缀的外部测试包；Maven 用 Failsafe 插件在 integration-test 与 verify 阶段跑集成测试，与跑单元的 Surefire 分开。Testcontainers 解决的是准备真实依赖这一步。',
+			grade: '框架与构建工具的官方仓库说明和文档，可直接核对；属于工具事实，不含效果承诺。',
+			dates: '各仓库与文档复核于 2026-09-15；Testcontainers 的语言覆盖以当日 GitHub 组织仓库列表为准。',
+			bounds: '列出的框架都能用于集成测试，但官方定位都不是集成测试框架：区别在测的范围，跟工具无关。C++ 与 Lua 没有同等级的容器化依赖编排生态：testcontainers 组织下没有 Lua 实现，C++ 的 testcontainers-native 建在 testcontainers-go 之上且规模很小，生产可用性需自行评估。Testcontainers 需要可用的 Docker 环境，CI 上要额外配置。',
 		},
 	},
 	{
@@ -325,270 +245,471 @@ const resources = [
 			summary: 'Parnas：围绕可能变化的设计决策做信息隐藏，比按处理步骤切模块更能提升可修改性；Ousterhout：深模块以较简单接口隐藏较多复杂度，深度是「能力 ÷ 接口复杂度」的直觉比值，不是代码行数。',
 			grade: '经典论文（CACM 1972）与工程著作原则（A Philosophy of Software Design）。',
 			dates: 'Parnas 1972；Ousterhout 2nd ed. 2021。',
-			bounds: '不规定现代语言中一个模块必须对应 class、package 或 service；深模块不等于大类、单体或接口越少越好；接口还包含行为、约束、副作用和错误语义，不只是方法数量。',
+			bounds: '不规定现代语言中一个模块必须对应 class、package 或 service；深模块不等于大类、单体或接口越少越好；接口还包括行为、约束、副作用和错误语义，方法数量只是其中一项。',
 		},
 	},
 	{
 		name: 'Code Review',
-		supports: '评审以技术事实和数据优先于个人偏好；AI 系统化扫描，人做最终风险判断。',
+		supports: '写法看规范、功能看需求；两条轴各起一个子 Agent 分头查，主 Agent 汇总。评审时技术事实和数据优先于个人偏好，最终风险判断由人来做。',
 		links: [
-			{ t: 'Google Engineering Practices', h: 'https://google.github.io/eng-practices/review/reviewer/looking-for.html' },
+			{ t: 'Google Engineering Practices：What to look for', h: 'https://google.github.io/eng-practices/review/reviewer/looking-for.html' },
+			{ t: 'Google Engineering Practices：The Standard of Code Review', h: 'https://google.github.io/eng-practices/review/reviewer/standard.html' },
+			{ t: 'Fowler：Code Smell 的定义', h: 'https://martinfowler.com/bliki/CodeSmell.html' },
+			{ t: 'Fowler《重构》配套目录（refactorings，非坏味道清单）', h: 'https://refactoring.com/catalog/' },
 			{ t: 'Bacchelli/Bird, ICSE 2013', h: 'https://doi.org/10.1109/ICSE.2013.6606617' },
 		],
 		detail: {
-			summary: 'Google：评审判断以技术事实和数据优先于个人偏好，测试本身也需要人检查是否会在行为破坏时真的失败；Bacchelli & Bird：评审实际收益大量来自变更理解与知识传播，理解变更是评审的关键难点。',
-			grade: '厂商实践标准（Google）+ 实证研究（ICSE 2013，Microsoft 团队探索性研究）。',
-			dates: 'Google 指南为在线文档，访问于 2026-09-10；ICSE 2013。',
-			bounds: '不是所有团队必须原样采用的标准；评审不能证明程序正确；2013 年的研究不能直接量化今天 AI 评审的效果；AI 给出 Recommendation，最终判断与责任在人。',
+			summary: 'Google 的清单实际列了 Design、Functionality、Complexity、Tests、Naming、Comments、Style、Consistency、Documentation 九项；评审判断以技术事实和数据优先于个人偏好，测试本身也需要人检查它会不会在行为被破坏时真的失败。页面把评审拆成规范与功能两条轴，是在这九项上做的归纳，跟 Google 的清单不完全对应。规范轴的第二层依据是语言 style guide（Google 的说法：style guide 是绝对权威），兜底清单来自 Fowler《重构》第 2 版第 3 章的坏味道；Fowler 给坏味道的定义是“a surface indication that usually corresponds to a deeper problem”，他自己也说“smells don\'t always indicate a problem”，所以清单项只作「疑似」上报。Bacchelli & Bird 发现评审的收益大量来自变更理解和知识传播，理解变更是评审里最难的一步。',
+			grade: '厂商实践标准（Google）+ 工程实践书目（Fowler《重构》第 2 版及其 Code Smell 定义条目）+ 实证研究（ICSE 2013，Microsoft 团队探索性研究）。',
+			dates: 'Google 指南与 Fowler 条目为在线文档，访问于 2026-09-15；ICSE 2013。',
+			bounds: '两轴划分是我采用的简化，行业里还有别的分法，Google 的清单里 Design 与 Complexity 夹在两轴之间；坏味道清单是判断性启发式，只作疑似上报，不算硬性违规，而且只在仓库与语言都没规定时使用；也不要求所有团队原样采用 Google 的标准；评审不能证明程序正确；规范类问题里只有规范文档明确要求的才算硬性，仅凭个人风格偏好不能拒绝一次提交（Google 原文）；2013 年的研究不能直接量化今天 AI 评审的效果；AI 给出 Recommendation，最终判断与责任在人。',
 		},
 	},
 ];
 ---
 
-<PageLayout
-	title="AI 编程课程 · 90 分钟讲师手册"
-	description="90 分钟 AI 编程工程方法课程：五幕七个检查点、三份交付模板与延伸资料。AI 让代码产生得更快，也让错误产生得更快；真正稀缺的是对齐、相关上下文和可信反馈。"
->
+<PageLayout title="AI 编程经验分享" description="我自己的 AI 编程工作流：从需求对齐到 Code Review。">
 	<article class="ac" data-pagefind-body>
 		<header class="ac-head">
-			<p class="eyebrow">90 分钟课程 · 讲师手册</p>
-			<h1>AI 编程课程</h1>
+			<p class="eyebrow">AI 辅助软件开发</p>
+			<h1>AI 编程经验分享</h1>
 			<p class="ac-promise">
-				AI 让代码产生得更快，也让错误产生得更快；真正稀缺的是<strong>对齐</strong>、<strong>相关上下文</strong>和<strong>可信反馈</strong>。这 90 分钟把它们变成一条可重复的工程工作流：五幕、七个检查点。
+				AI 让代码产生得更快，也让错误产生得更快。对齐、相关上下文、可信反馈，这三件事现在最稀缺。
 			</p>
-			<p class="muted">
-				90 分钟后，你会带走：把任务写成 Goal Brief；为 AI 选择最小、充分、高信号的上下文；用验证证据、模块边界和 Code Review 判断 AI 代码能否交付。
-			</p>
+			<p class="ac-lead">把它们串起来，就是一条从需求到交付、可以重复使用的工作流。</p>
 		</header>
 
-		<div class="ac-grid">
-			<aside class="ac-toc" aria-label="手册目录">
-				<p class="ac-toc-title">目录</p>
-				<a href="#rhythm" data-stop-marker data-stop="rhythm">90 分钟节奏</a>
+		<section class="workflow" aria-labelledby="workflow-title">
+			<p class="section-kicker">我的一条主线</p>
+			<h2 id="workflow-title">我的个人编程工作流</h2>
+			<div class="workflow-track">
 				{checkpoints.map((c) => (
-					<a href={`#cp${c.n}`} data-stop-marker data-stop={`cp${c.n}`}>{c.n} · {c.name}</a>
+					<a class="workflow-step" href={`#cp${c.n}`}>
+						<span class="step-number">{c.n}</span>
+						<strong>{c.name}</strong>
+						<small>{c.summary}</small>
+					</a>
 				))}
-				<a href="#templates" data-stop-marker data-stop="templates">模板库</a>
-				<a href="#resources" data-stop-marker data-stop="resources">延伸资料</a>
-				<p class="ac-toc-hint">打印 / PDF：备注与互动答案自动展开</p>
-			</aside>
+			</div>
+		</section>
 
-			<div class="ac-body">
-				<section class="ac-sec" id="rhythm" data-stop-section data-stop="rhythm">
-					<h2>90 分钟节奏</h2>
-					<table class="tbl">
-						<thead><tr><th>时间</th><th>幕</th><th>内容</th><th>优先级</th></tr></thead>
-						<tbody>
-							{rhythm.map((r) => (
-								<tr><td>{r.time}</td><td>{r.act}</td><td><strong>{r.title}</strong>——{r.points}</td><td>{r.priority}</td></tr>
-							))}
-						</tbody>
-					</table>
-					<p class="muted">
-						不设正式中场休息。三次互动包含在对应章节时间内；最后 5 分钟兼顾总结和集中问答。超时依次裁剪：J-space 细节 → 工具限制详单 → 扩展资料卡 → 额外个人故事；不得裁剪 Goal Brief、最小充分上下文、外内双循环、深模块判断题和 Code Review 责任分工。
-					</p>
-					<h3>贯穿示例：活动奖励领取（已填写 Goal Brief）</h3>
-					<pre class="codeblock"><code>{filledGoalBrief}</code></pre>
-				</section>
+		<div class="ac-body">
 
-				<section class="ac-sec" id="cp1" data-stop-section data-stop="cp1">
-					<h2>1 · 需求对齐 <small>{checkpoints[0].act} · {checkpoints[0].time} 分钟 · {checkpoints[0].priority}</small></h2>
-					<p class="keyline">AI 的生成速度不是交付能力；没有对齐、上下文和反馈，速度只会放大偏差。</p>
+			<section class="ac-sec" id="cp1">
+				<p class="section-number">01</p>
+				<h2>需求对齐</h2>
+				<p class="keyline">对齐没做好，生成得越快，偏差放大得越快。</p>
+				<div class="idea-grid">
+					<div class="idea-card"><span>Why</span><strong>为什么做</strong><p>先建立共同的问题定义。</p></div>
+					<div class="idea-card"><span>Outcome</span><strong>要什么结果</strong><p>用可观察的业务结果描述目标。</p></div>
+					<div class="idea-card"><span>Evidence</span><strong>怎么算完成</strong><p>把成功写成可以验证的标准。</p></div>
+				</div>
+
+				<div class="alignment-part">
+					<p class="part-label">From Prompt to Eval</p>
+					<h3>在动手写代码之前，先把验证回路定下来</h3>
+					<p>把需求 Spec 里的每条成功标准映射成验证方式。这样改提示词就有了可重复的循环，实现完成后 AI 也能按同一份标准自动验证。</p>
+					<ol class="verification-flow">
+						<li><strong>成功标准</strong><span>把结果写成可观察、可证伪的行为</span></li>
+						<li><strong>Verification Plan</strong><span>为每条标准选择单元、集成、静态检查或人工观察</span></li>
+						<li><strong>最终门槛</strong><span>约定全部通过的证据，以及仍需人工判断的风险</span></li>
+					</ol>
 					<ul>
-						<li>0–2：用核心判断建立问题。</li>
-						<li>2–5：展示三个主题（{themes.join('、')}）和七个检查点。</li>
-						<li>5–8：展示完整 Goal Brief 与浅模块伪代码，只问“它能交付吗？”，暂不揭晓。</li>
+						<li><strong>双循环</strong>：外层验收/集成测试守住业务目标；内层单元测试快速驱动实现。</li>
+						<li><strong>速度 × 可信度</strong>：反馈要快，也要稳定、可诊断，而且跟当前这次修改相关。</li>
 					</ul>
-					<pre class="codeblock"><code>{shallowCode}</code></pre>
-					<p><strong>过渡：</strong>先别急着看代码，第一件事是确认 AI 正在追求正确的结果。</p>
-					<details class="notes">
-						<summary>讲师备注</summary>
-						<p>四个概念角色：{roles.map((r, i) => <>{i > 0 && '、'}{r.name}（{r.what}）</>)}</p>
-					</details>
-				</section>
+				</div>
 
-				<section class="ac-sec" id="cp2" data-stop-section data-stop="cp2">
-					<h2>2 · 表达目标 <small>{checkpoints[1].act} · {checkpoints[1].time} 分钟 · {checkpoints[1].priority}</small></h2>
-					<p class="keyline">先说你要什么，再补真正必要的不能做什么。</p>
-					<div class="prompt-grid">
-						<div class="prompt-card prompt-bad">
-							<h4>✗ 无关禁止指令</h4>
-							<pre class="codeblock"><code>{promptBad}</code></pre>
-						</div>
-						<div class="prompt-card prompt-good">
-							<h4>✓ 目标 + 必要边界</h4>
-							<pre class="codeblock"><code>{promptGood}</code></pre>
-						</div>
+				<div class="alignment-part">
+					<p class="part-label">继续拓展</p>
+					<h3>从写提示词，走向管理 AI 行为</h3>
+					<div class="prompt-extensions">
+						{promptExtensions.map((item) => (
+							<div>
+								<strong>{item.title}</strong>
+								<p>{item.text}</p>
+							</div>
+						))}
 					</div>
-					<div class="quiz" data-quiz>
-						<p class="quiz-tag">互动 · 4 分钟</p>
-						<p class="quiz-q">哪一份目标更明确、噪声更少、硬边界更可验证？</p>
-						<div class="quiz-opts">
-							<button type="button" class="chip chip-toggle" aria-pressed="false">提示一（禁令清单）</button>
-							<button type="button" class="chip chip-toggle" aria-pressed="false">提示二（目标 + 边界）</button>
-							<button type="button" class="chip chip-toggle" aria-pressed="false">两份都能用</button>
-						</div>
-						<p class="quiz-invite" data-quiz-invite>请举手或口头选择，并说说理由。</p>
-						<button type="button" class="btn" data-reveal>揭示推荐判断</button>
-						<div class="quiz-panel" data-quiz-panel hidden>
-							<p><strong>推荐判断：</strong>提示二——先给出目标与输出标准，硬边界写成可验证的行为约束。</p>
-							<p><strong>证据：</strong>无关上下文干扰 LLM（ICML 2023）；点名概念可能提高内部显著性（J-space，2026）；任务相关强禁止项是有效护栏（Nature 2025）。</p>
-							<p><strong>常见误区：</strong>简化为“不要对 AI 说不要”；或认为禁止式提示必然污染输出。</p>
-						</div>
-					</div>
-					<aside class="practice">
-						<p class="who">我的实际做法</p>
-						<p>我先与 AI 对齐为什么做、要达到什么结果，再让它寻找实现路径。</p>
-					</aside>
-					<p><strong>过渡：</strong>目标清楚以后，下一步不是把仓库全部塞进去，而是找到完成这个目标所需的证据。</p>
-					<details class="notes">
-						<summary>讲师备注 · 证据边界</summary>
-						<ul>
-							<li>J-space 只作为 2026 年新研究解释内部显著性；未证明最终输出必然污染，也不是所有模型共享的潜在空间同义词。</li>
-							<li>强而具体的任务相关禁止项可以成为有效护栏。</li>
-						</ul>
-					</details>
-				</section>
+					<p class="takeaway"><strong>边界：</strong>Prompt Engineering 能约定行为，但不能替代权限控制、真实测试和人的最终判断。</p>
+				</div>
 
-				<section class="ac-sec" id="cp3" data-stop-section data-stop="cp3">
-					<h2>3 · 获取上下文 <small>{checkpoints[2].act} · {checkpoints[2].time} 分钟 · {checkpoints[2].priority}</small></h2>
-					<p class="keyline">上下文工程不是把仓库全给 AI，而是让它逐层找到最相关的证据。</p>
+				<div class="spec-block">
+					<p class="part-label">Spec · 对齐的产物</p>
+					<h3>把对齐的结果写成一份 Spec</h3>
+					<p>AI 编程里的提示工程主要做一件事：把目标、成功标准、边界和停止条件写成彼此一致的一份任务契约，也就是需求 Spec 加 Verification Plan。对齐谈完，留下的就是这份文档。</p>
+					<div class="prompt-contract" aria-label="Spec 的七个组成部分">
+						{promptContract.map((item) => (
+							<div class="contract-card">
+								<span>{item.key}</span>
+								<strong>{item.title}</strong>
+								<p>{item.text}</p>
+							</div>
+						))}
+					</div>
+					<div class="takeaway"><strong>判断标准：</strong>一份好的 Spec，应该让 AI 知道要交付什么、怎样判断完成，以及信息不足时应该继续、提问还是停止。</div>
+				</div>
+			</section>
+
+			<section class="ac-sec" id="cp2">
+				<p class="section-number">02</p>
+				<h2>AI 的上下文采集</h2>
+					<p class="keyline">上下文工程做的事，是让 AI 逐层找到最相关的证据。</p>
 					<table class="tbl">
 						<thead><tr><th>层次</th><th>要回答的问题</th><th>常见来源</th></tr></thead>
 						<tbody>
 							{contextLayers.map((l) => <tr><td><strong>{l.layer}</strong></td><td>{l.q}</td><td>{l.src}</td></tr>)}
 						</tbody>
 					</table>
+				<div class="context-reality">
+					<p class="part-label">Lost in the Middle · 上下文迷失</p>
+					<h3>同一个窗口里，信息放在哪儿会影响它能不能被用上</h3>
+					<p>《Lost in the Middle》在多文档问答和键值检索任务中发现：相关信息位于开头或结尾时，模型表现通常更好；被埋在长上下文中间时，表现可能明显下降。</p>
+					<div class="position-curve" aria-label="相关信息在上下文不同位置时的典型表现">
+						<div class="position-high"><span>开头</span><strong>较容易被利用</strong></div>
+						<div class="position-low"><span>中间</span><strong>容易迷失</strong></div>
+						<div class="position-high"><span>结尾</span><strong>较容易被利用</strong></div>
+					</div>
+					<p class="evidence-note">这是论文在特定任务与模型上观察到的典型曲线，不代表所有新模型、所有任务都严格如此。</p>
+				</div>
+
+				<div class="window-budget">
+					<div>
+						<p class="part-label">1,000,000 tokens</p>
+						<h3>容量上限</h3>
+						<p>模型最多能接收多少内容。它不保证每个位置、每条信息都被同等可靠地用上。</p>
+					</div>
+					<div class="working-set">
+						<p class="part-label">≤ 200,000 tokens</p>
+						<h3>可控工作集</h3>
+						<p>在同一任务中，精选的高信号内容通常比塞满窗口更可控，也更利于降低延迟、成本和注意力污染。</p>
+					</div>
+				</div>
+				<p class="takeaway"><strong>说明：</strong>这里比的是上下文用量，跟两个模型谁强谁弱无关。20 万也不是通用最佳值，只是「先控制工作集，再按证据扩展」的一个工程示例。</p>
+
+				<div class="ctx-mix">
+					<p class="part-label">Context Budget · 常规上下文里塞了什么</p>
+					<h3>在你开口之前，窗口里已经装了一部分</h3>
+					<p>在你说第一句话之前，代理已经把系统提示、工具定义、技能描述和项目文档装进窗口了。这类工具一般用占比视图把它摊开，下面是典型的构成形态。</p>
+					<div class="ctx-mix-bar" role="img" aria-label="上下文窗口的典型构成：系统提示与指令文件 12%、工具与 MCP 定义 10%、技能描述 8%、记忆与项目文档 15%、对话消息 40%、留白 15%">
+						{ctxMix.map((m) => <span class={m.tone} style={`flex: ${m.pct} 0 0`} />)}
+					</div>
+					<ul class="ctx-mix-legend">
+						{ctxMix.map((m) => (
+							<li>
+								<i class={m.tone} />
+								<b>{m.label}</b>
+								<span class="pct">{m.pct}%</span>
+								<span class="note">{m.note}</span>
+							</li>
+						))}
+					</ul>
+					<p class="evidence-note">边界：Claude Code 的 <code>/context</code> 会给出“按类别的实时分解”，但官方同时声明其可视化用的是代表性数字（representative numbers）。所以上面的比例是示意，用来理解结构，不是计量结果。</p>
+				</div>
+
+				<div class="ctx-cache">
+					<p class="part-label">Cache · 缓存命中率也是一种编码习惯</p>
+					<h3>写代码的时候，也把缓存命中率算进去</h3>
+					<p>同一个需求，开一堆会话、每个聊两句就晾着，过几十分钟再回来续，热前缀早被卸载了，前面那一段向量得重新算一遍。一段连续的工作留在同一个会话里趁热往下走，前缀一直复用，只算新增部分，又快又便宜。换任务、换话题时开新会话是对的，新任务本来就需要干净的上下文。</p>
+					<ol class="echain">
+						{ctxCacheNotes.map((n) => (
+							<li><strong>{n.k}</strong><span>{n.v}</span></li>
+						))}
+					</ol>
+					<p class="share-note"><strong>区分：</strong>KV Cache 是模型为这一次请求留下的注意力中间结果，prompt caching 把这段结果跨请求复用。Azure 官方文档说扩展缓存会把 key/value tensors 卸载到 GPU 本地存储，被缓存的就是 KV。</p>
+					<p class="evidence-note">边界：命中按最长公共前缀匹配，前缀改一个字符就从改动处失效。<strong>Anthropic</strong> 默认 5 分钟，可用 <code>cache_control</code> 的 <code>ttl: "1h"</code> 拉到 1 小时；写入按基准输入价的 1.25×（5 分钟）到 2×（1 小时）计费，读取约 0.1×。<strong>Azure OpenAI</strong> 文档称在内存缓存“通常在闲置 5 到 10 分钟后清除，最迟在其最后一次使用后 1 小时内移除”。</p>
+				</div>
+
+				<div class="ctx-steps">
+					<p class="part-label">Steps · 采集顺序</p>
+					<h3>这六个动作按顺序走一遍</h3>
 					<ol class="steps">
 						{demoSteps.map((s) => <li>{s}</li>)}
 					</ol>
-					<div class="quiz" data-quiz>
-						<p class="quiz-tag">互动 · 4 分钟</p>
-						<p class="quiz-q">为“活动奖励领取”选择最小充分上下文包。</p>
-						<div class="quiz-opts quiz-chips">
-							{contextPicks.map((p) => (
-								<button type="button" class="chip chip-toggle" aria-pressed="false" data-good={p.good ? '' : undefined} data-noise={p.good ? undefined : ''}>
-									{p.label}
-								</button>
-							))}
-						</div>
-						<p class="quiz-invite" data-quiz-invite>请口头选择并说明理由——哪些是噪声？</p>
-						<button type="button" class="btn" data-reveal>揭示推荐答案</button>
-						<div class="quiz-panel" data-quiz-panel hidden>
-							<p><strong>推荐判断：</strong>Goal Brief、领取模块的公开接口、调用该接口的入口、资格来源契约、奖励系统契约及超时语义、领取记录的数据约束、相关测试、一条与幂等或失败处理有关的历史决策。</p>
-							<p><strong>证据：</strong>上下文工程包括主动移除噪声——排除范围见 Goal Brief。</p>
-							<p><strong>常见误区：</strong>“把整个仓库给 AI 更安全”；漏掉相关测试或历史决策。</p>
-						</div>
+				</div>
+				<div class="context-choice">
+					<div>
+						<h3>需要的高信号上下文</h3>
+						<ul>{contextPicks.filter((p) => p.good).map((p) => <li>{p.label}</li>)}</ul>
 					</div>
-					<aside class="practice">
-						<p class="who">我的实际做法</p>
-						<p>我让 AI 先查入口、调用者、相关测试和历史原因，再读取少量高信号文件。</p>
-					</aside>
-					<p><strong>过渡：</strong>找对上下文只能提高理解概率；要知道修改是否正确，还需要能够迅速证伪它。</p>
-					<details class="notes">
-						<summary>讲师备注 · 工具边界</summary>
-						<p>code-review-graph 是第三方本地代码结构图工具（MCP/CLI）；图是索引，仍需回读源码、运行测试、核对历史。</p>
-					</details>
-				</section>
-
-				<section class="ac-sec" id="cp4" data-stop-section data-stop="cp4">
-					<h2>4 · 设计验证 <small>{checkpoints[3].act} · {checkpoints[3].time} 分钟 · {checkpoints[3].priority}</small></h2>
-					<p class="keyline">反馈循环不仅要短，还必须稳定、可诊断并与当前修改相关。</p>
-					<ul>
-						<li>由 Goal Brief 的成功标准生成<strong>行为清单</strong>，一次只具体化一个测试。</li>
-						<li><strong>外内双循环</strong>：外层验收/集成测试守住业务目标；内层单元测试快速驱动实现。</li>
-						<li><strong>速度 × 可信度</strong>：快且准最有用；快但噪声大 → 误判；慢但准 → 上下文切换；慢且噪声大 → 优先治理。flaky test 会污染人和 AI 的判断。</li>
-					</ul>
-				</section>
-
-				<section class="ac-sec" id="cp5" data-stop-section data-stop="cp5">
-					<h2>5 · TDD 实现 <small>{checkpoints[4].act} · {checkpoints[4].time} 分钟 · {checkpoints[4].priority}</small></h2>
-					<p>四轮 Red–Green–Refactor：每轮只展示“新失败测试 → 最小行为 → 重构后的规则位置”；测试来自 Goal Brief。</p>
-					<table class="tbl">
-						<thead><tr><th>轮次</th><th>Red（新失败测试）</th><th>Green（最小行为）</th><th>Refactor（规则位置）</th></tr></thead>
-						<tbody>
-							{tddRounds.map((r) => (
-								<tr><td><strong>{r.n}. {r.name}</strong></td><td>{r.red}</td><td>{r.green}</td><td>{r.refactor}</td></tr>
-							))}
-						</tbody>
-					</table>
-					<p class="correction"><strong>纠偏：</strong>TDD 不是 Red–Green–Red；测试全绿只说明已声明的检查没有失败，不说明声明完整。</p>
-					<aside class="practice">
-						<p class="who">我的实际做法</p>
-						<p>我先决定什么证据能证明完成，再让 AI 逐轮 Red–Green–Refactor。</p>
-					</aside>
-				</section>
-
-				<section class="ac-sec" id="cp6" data-stop-section data-stop="cp6">
-					<h2>6 · 集成验证 <small>{checkpoints[5].act} · {checkpoints[5].time} 分钟 · {checkpoints[5].priority}</small></h2>
-					<ul>
-						<li><strong>窄集成测试</strong>验证具体边界；<strong>少量宽系统测试</strong>守住关键旅程。不规定固定测试比例。</li>
-						<li><strong>深模块与浅模块（第四幕 B · 63–75）</strong>：浅模块迫使调用方编排“查资格 → 查领取记录 → 发奖 → 保存结果 → 处理超时”；深模块只暴露领取入口和 Claimed / Ineligible / RetryLater。</li>
-					</ul>
-					<div class="mgrid">
-						<div class="mcard mcard-shallow">
-							<h4>浅模块</h4>
-							<pre class="codeblock"><code>{shallowCode}</code></pre>
-						</div>
-						<div class="mcard mcard-deep">
-							<h4>深模块</h4>
-							<pre class="codeblock"><code>{deepCode}</code></pre>
-						</div>
+					<div class="noise">
+						<h3>此刻不需要的噪声</h3>
+						<ul>{contextPicks.filter((p) => !p.good).map((p) => <li>{p.label}</li>)}</ul>
 					</div>
-					<p><strong>带走的问题：</strong>调用方为了正确使用它，必须知道多少内部决策？</p>
-					<p class="correction"><strong>纠偏：</strong>深模块不等于大类、单体或接口越少越好。</p>
-				</section>
-
-				<section class="ac-sec" id="cp7" data-stop-section data-stop="cp7">
-					<h2>7 · Code Review <small>{checkpoints[6].act} · {checkpoints[6].time} 分钟 · {checkpoints[6].priority}</small></h2>
-					<p class="keyline">测试是证据之一，Code Review 负责判断证据是否完整、设计是否可承受风险。</p>
-					<div class="quiz" data-quiz>
-						<p class="quiz-tag">互动 · 4 分钟 · 回扣开场</p>
-						<p class="quiz-q">开场那段浅模块代码通过了自己的单元测试。它能交付吗？请口头找出缺陷。</p>
-						<pre class="codeblock"><code>{shallowCode}</code></pre>
-						<div class="quiz-opts">
-							<button type="button" class="chip chip-toggle" aria-pressed="false">可以交付——测试全绿</button>
-							<button type="button" class="chip chip-toggle" aria-pressed="false">不能交付——存在行为缺陷</button>
-							<button type="button" class="chip chip-toggle" aria-pressed="false">补更多测试后再判断</button>
-						</div>
-						<p class="quiz-invite" data-quiz-invite>请举手或口头选择，并指出缺陷发生在哪几行。</p>
-						<button type="button" class="btn" data-reveal>揭示推荐判断</button>
-						<div class="quiz-panel" data-quiz-panel hidden>
-							<p><strong>推荐判断：</strong>Request changes——两个 P0 级缺陷：① 检查与发奖分离 → 并发重复发奖（SC-4）；② 超时后盲目重发，无法区分“未执行”和“已执行但响应丢失”（RetryLater 语义）。</p>
-							<p><strong>常见误区：</strong>把“测试全绿”当作自动批准。</p>
-						</div>
-					</div>
+				</div>
+				<div class="context-tools">
+					<p class="part-label">Tools · MCP</p>
+					<h3>让代理沿调用链取子图</h3>
+					<p>上下文质量也取决于每次喂进去的是什么。命中一批文件后逐个整文件读入，会把大量无关代码带进窗口；先在图里定位相关节点与调用链，只回读命中的片段，这样才是逐层取证。</p>
 					<ol class="echain">
-						<li><strong>Goal Brief</strong><span>目标与成功标准</span></li>
+						{contextToolNotes.map((n) => (
+							<li><strong>{n.k}</strong><span>{n.v}</span></li>
+						))}
+					</ol>
+					<p><strong>推荐工具：</strong><a href="https://github.com/tirth8205/code-review-graph" target="_blank" rel="noreferrer">code-review-graph</a> 是一个开源的代码图 MCP，属于“代码图 / 语义索引”这一类工具。它用 Tree-sitter 把仓库解析成 AST，再建成「函数、类、导入」节点与「调用、继承、测试覆盖」边的图，存入仓库内本地 SQLite；代理可以沿调用链从入口点追踪、计算影响半径，并带 token 预算取回最小上下文。</p>
+					<p class="evidence-note">边界：它给出的 token 节省（中位约 65×，区间 36×–376×）与影响准确率是作者自测数据，不是独立评测，也不构成对本仓库的承诺值。</p>
+					<p class="share-note"><strong>小分享：</strong>我用 Codex 时被 <code>rg.exe</code> 坑过一次，它检索文件的时候把我的应用拖到几乎卡死；后来把检索范围收进仓库、并让它优先走代码图 MCP，就再没出现过。</p>
+				</div>
+
+				<div class="context-memory">
+					<p class="part-label">Persistent Context · 持久化上下文</p>
+					<h3>目标不要只活在对话里</h3>
+					<p>长任务频繁触发上下文压缩时，摘要可能遗漏后来才显得重要的细节。把需求 Spec、关键决策、当前进度和验证结果写进仓库文档，让它们成为上下文窗口之外的持久事实来源。</p>
+					<ol class="echain context-chain">
+						<li><strong>需求 Spec</strong><span>目标、成功标准与边界的唯一事实来源</span></li>
+						<li><strong>入口索引</strong><span>用简短说明告诉 AI 文档在哪里、何时读取</span></li>
+						<li><strong>重新装载</strong><span>任务开始、压缩后或目标变化时主动回读</span></li>
+						<li><strong>持续写回</strong><span>同步决策、进度、验证证据与未解决问题</span></li>
+					</ol>
+					<p class="takeaway"><strong>说明：</strong>文档不会自动进入模型上下文；代理得知道路径，在需要时显式读取，或者由系统注入。压缩掉的是对话历史，任务目标本身还在文档里。</p>
+				</div>
+			</section>
+
+			<section class="ac-sec" id="cp3">
+				<p class="section-number">03</p>
+				<h2>AI 写代码</h2>
+				<p class="keyline">代码由验证标准驱动，一次推进一个能够被验证的小步。</p>
+					<p>从需求 Spec 选择一条成功标准，用短循环逐步实现；一次只增加一个需要被证明的行为。</p>
+					<ol class="verification-flow">
+						<li><strong>Red</strong><span>把一条成功标准变成会失败的行为检查</span></li>
+						<li><strong>Green</strong><span>实现让这条检查通过的最小行为</span></li>
+						<li><strong>Refactor</strong><span>在保持行为通过的前提下整理结构与边界</span></li>
+					</ol>
+					<p class="correction"><strong>纠偏：</strong>TDD 不是 Red–Green–Red；测试全绿只说明已声明的检查没有失败，不说明声明完整。</p>
+
+					<div class="tdd-why">
+						<p class="part-label">Why TDD · 为什么要先用测试</p>
+						<h3>测试也在给 AI 划边界</h3>
+						<p>先写测试，除了测试文件，还留下被切小的行为和固定下来的接口。每次只允许一条检查变绿，代码就只能长成“刚好够用”的形状：大模块被迫拆开，块与块之间留下可以单独替换、单独验证的接缝。</p>
+						<ol class="echain">
+							{tddWhy.map((n) => (
+								<li><strong>{n.k}</strong><span>{n.v}</span></li>
+							))}
+						</ol>
+						<div class="tdd-scope">
+							<div>
+								<p class="part-label">Spec 里只要求这些</p>
+								<pre class="codeblock"><code>{`class Person {
+  constructor(name) { this.name = name }
+  walk() { /* ... */ }
+  eat()  { /* ... */ }
+}`}</code></pre>
+							</div>
+							<div class="overreach">
+								<p class="part-label">AI 顺手补上的</p>
+								<pre class="codeblock"><code>{`getAge()        // 没有这个需求
+getBirthday()   // 没有这个需求
+getZodiac()     // 由生日派生
+getHoroscope()  // 再由星座派生`}</code></pre>
+							</div>
+						</div>
+						<p class="takeaway"><strong>判断标准：</strong>没有一条检查会失败的方法，就不写。写完再做一次“删除测试”：删掉它，如果复杂度是凭空消失的，那它本来就是多余的。</p>
+						<p class="evidence-note">边界：这套约束来自“先写测试 + 只满足当前检查”，跟 TDD 这个词本身无关；也不等于接口越窄越好，或禁止预留扩展点。需求本身没想清楚时，多写几个方法对冲不了不确定性，该补的是需求。</p>
+					</div>
+
+					<div class="agent-orch">
+						<p class="part-label">Orchestration · 多 Agent 编排</p>
+						<h3>父 Agent 定目标、拆任务、验收；子 Agent 只干一件能被验收的事</h3>
+						<p>子 Agent 解决的是一个很具体的问题：有些副任务要翻很多日志、读很多文件，而这些过程性内容你以后不会再引用。让它在自己的窗口里做完，只把结论带回来，主对话就不会被这些东西灌满。</p>
+						<div class="agent-roles">
+							{agentRoles.map((r) => (
+								<div>
+									<p class="part-label">{r.role}</p>
+									<p>{r.duty}</p>
+								</div>
+							))}
+						</div>
+						<ol class="echain">
+							{agentRules.map((n) => (
+								<li><strong>{n.k}</strong><span>{n.v}</span></li>
+							))}
+						</ol>
+						<div class="agent-dag">
+							<p class="part-label">Dependency · 依赖决定谁能同时开工</p>
+							<h4>能并行的是同一层，有依赖的必须等</h4>
+							<p>一个大模块里的方法通常不是平的，而是一张有向图：B、C 依赖 A，D 依赖 B，E 依赖 C。如果五个一起派出去，D 和 E 在 A、B、C 落地之前就得先写，只能按各自对上游的假想，先返回一个占位。</p>
+							<div class="dag-compare">
+								<div class="bad">
+									<p class="part-label">反面 · 一次全派出去</p>
+									<svg class="dag-svg" viewBox="0 0 360 250" role="img" aria-label="反面：A、B、C、D、E 五个同时派出去。A 到 B、A 到 C 是实线箭头；B 到 D、C 到 E 是虚线箭头，D 和 E 是虚线框，表示上游还没写成，只能先按假想返回占位。">
+										<defs>
+											<marker id="dag-head-solid-a" viewBox="0 0 8 8" refX="7.6" refY="4" markerWidth="5.6" markerHeight="5.6" orient="auto">
+												<path class="dag-arrow-head" d="M0.6,0.6 L7.8,4 L0.6,7.4 z" />
+											</marker>
+											<marker id="dag-head-ghost-a" viewBox="0 0 8 8" refX="7.6" refY="4" markerWidth="5.6" markerHeight="5.6" orient="auto">
+												<path class="dag-arrow-head is-ghost" d="M0.6,0.6 L7.8,4 L0.6,7.4 z" />
+											</marker>
+										</defs>
+										<text class="dag-wave-label" x="0" y="127.7">同时派出</text>
+										<path class="dag-edge" d="M176,50 L117.4,104" marker-end="url(#dag-head-solid-a)" />
+										<path class="dag-edge" d="M176,50 L234.6,104" marker-end="url(#dag-head-solid-a)" />
+										<path class="dag-edge is-ghost" d="M113,140 L113,192" marker-end="url(#dag-head-ghost-a)" />
+										<path class="dag-edge is-ghost" d="M239,140 L239,192" marker-end="url(#dag-head-ghost-a)" />
+										<g class="dag-node"><rect x="144" y="18" width="64" height="32" rx="9" /><text x="176" y="39.5">A</text></g>
+										<g class="dag-node"><rect x="81" y="108" width="64" height="32" rx="9" /><text x="113" y="129.5">B</text></g>
+										<g class="dag-node"><rect x="207" y="108" width="64" height="32" rx="9" /><text x="239" y="129.5">C</text></g>
+										<g class="dag-node is-stub"><rect x="81" y="198" width="64" height="32" rx="9" /><text x="113" y="219.5">D</text></g>
+										<g class="dag-node is-stub"><rect x="207" y="198" width="64" height="32" rx="9" /><text x="239" y="219.5">E</text></g>
+									</svg>
+									<p>D、E 的上游还没写成，只能先按假想返回占位值</p>
+								</div>
+								<div class="good">
+									<p class="part-label">正面 · 按依赖分三波</p>
+									<svg class="dag-svg" viewBox="0 0 360 250" role="img" aria-label="正面：按依赖分三波派发。第 1 波只派 A；A 落地后第 2 波同时派 B 和 C；第 3 波派 D 和 E，各自等自己的上游。">
+										<defs>
+											<marker id="dag-head-solid-b" viewBox="0 0 8 8" refX="7.6" refY="4" markerWidth="5.6" markerHeight="5.6" orient="auto">
+												<path class="dag-arrow-head" d="M0.6,0.6 L7.8,4 L0.6,7.4 z" />
+											</marker>
+										</defs>
+										<rect class="dag-wave" x="46" y="10" width="308" height="48" rx="10" />
+										<rect class="dag-wave" x="46" y="100" width="308" height="48" rx="10" />
+										<rect class="dag-wave" x="46" y="190" width="308" height="48" rx="10" />
+										<text class="dag-wave-label" x="0" y="37.7">第 1 波</text>
+										<text class="dag-wave-label" x="0" y="127.7">第 2 波</text>
+										<text class="dag-wave-label" x="0" y="217.7">第 3 波</text>
+										<path class="dag-edge" d="M176,50 L117.4,104" marker-end="url(#dag-head-solid-b)" />
+										<path class="dag-edge" d="M176,50 L234.6,104" marker-end="url(#dag-head-solid-b)" />
+										<path class="dag-edge" d="M113,140 L113,192" marker-end="url(#dag-head-solid-b)" />
+										<path class="dag-edge" d="M239,140 L239,192" marker-end="url(#dag-head-solid-b)" />
+										<g class="dag-node"><rect x="144" y="18" width="64" height="32" rx="9" /><text x="176" y="39.5">A</text></g>
+										<g class="dag-node"><rect x="81" y="108" width="64" height="32" rx="9" /><text x="113" y="129.5">B</text></g>
+										<g class="dag-node"><rect x="207" y="108" width="64" height="32" rx="9" /><text x="239" y="129.5">C</text></g>
+										<g class="dag-node"><rect x="81" y="198" width="64" height="32" rx="9" /><text x="113" y="219.5">D</text></g>
+										<g class="dag-node"><rect x="207" y="198" width="64" height="32" rx="9" /><text x="239" y="219.5">E</text></g>
+									</svg>
+									<p>A 落地再派 B、C；B、C 互不依赖可以同时跑；D、E 各自等自己的上游</p>
+								</div>
+							</div>
+							<p class="dag-legend">实线箭头 = 上游已经落地，可以直接照着写　·　虚线箭头与虚线框 = 上游还没写成，只能先按假想返回占位</p>
+							<p>麻烦在于每个子 Agent 只验证自己那一块：B 的检查不会去测 A，D 的检查也不会去测 B。占位对不对，要等整条链路接起来跑才暴露，那时候五个方法都已经各自写完了。</p>
+							<p class="evidence-note">边界：官方对并行的前提说得很直白：同时派多个子 Agent 只适合「彼此独立」的任务，多步骤流程要用「串行」，一个跑完把结果交给下一个；顺序由父 Agent 掌握，子 Agent 之间不会自己排队。另外前台子 Agent 会阻塞主对话，只有后台的才并行；并发数默认上限 20，超了会直接失败。「按依赖分层派发」是把这套规则落到代码上的做法，属于工程经验，不是官方规定。</p>
+						</div>
+						<p class="share-note"><strong>小分享：</strong>我用 Coze 的时候被它自动长出来的记忆坑过，后来索性关掉了：有些记录写下时是对的，代码改了没人回头改它。还踩过一次更隐蔽的：我要求它“用代码事实说话”，多 Agent 编排一开，这条规则跟着进了子 Agent，结果它只改了一行代码，交付的 MD 却有好几百行，因为它把整个文件抄了进去。规则本身没问题，是它同时被当成了引用依据和输出内容。</p>
+						<p class="evidence-note">边界：子 Agent 默认能拿到项目指令文件（内置的 Explore / Plan 例外），但拿不到父会话的自动记忆，所以“规则传下去了”通常是指令文件在起作用。要它有跨会话的长期记忆得单独配，而这份记忆会随代码变化过期。“用同档模型更省”是经验判断，公开文档只说过并行跑多个子 Agent 会成倍放大 token 用量。各家工具实现不同，以你手上那个为准。</p>
+					</div>
+				</section>
+
+			<section class="ac-sec" id="cp4">
+				<p class="section-number">04</p>
+				<h2>AI 自验证</h2>
+				<p class="keyline">AI 按需求对齐时约定的验证回路，自主运行检查、修正问题，并汇总交付证据。</p>
+				<ol class="validation-grid">
+					<li><strong>运行快速检查</strong><span>单元测试、类型检查、静态检查</span></li>
+					<li><strong>验证真实边界</strong><span>窄集成测试与关键业务旅程</span></li>
+					<li><strong>定位并修正</strong><span>根据失败证据缩小问题范围，再次运行</span></li>
+					<li><strong>汇总交付证据</strong><span>记录通过项、失败项和未验证风险</span></li>
+				</ol>
+				<p class="takeaway"><strong>说明：</strong>验证方式在需求对齐那一步就定好了，AI 拿到的是明确的 Verification Plan，不用到这一步再临时决定怎么验证。</p>
+				<h3>除了测试有没有绿，还要看这三件事</h3>
+				<div class="idea-grid">
+					<div class="idea-card"><span>Behavior</span><strong>行为是否正确</strong><p>逐项核对成功标准与失败路径。</p></div>
+					<div class="idea-card"><span>Boundary</span><strong>真实边界是否成立</strong><p>验证依赖、数据、权限与关键集成。</p></div>
+					<div class="idea-card"><span>Structure</span><strong>修改是否可持续</strong><p>检查接口是否隐藏了内部复杂度与易变决策。</p></div>
+				</div>
+				<p class="correction"><strong>纠偏：</strong>窄集成测试验证具体边界，少量宽系统测试守住关键旅程；不需要固定测试比例。</p>
+
+				<div class="itest">
+					<p class="part-label">Tooling · 各语言怎么跑集成测试</p>
+					<h3>没有“集成测试框架”，分的是测的范围</h3>
+					<p>常被当成集成测试方案的那几个，官方定位都是单元测试框架：Busted 的 README 写的是 “a unit testing framework”，GoogleTest 自称 “Google's C++ test framework”，Catch2 写 “mainly a unit testing framework”。集成测试是测的范围，跟用哪个框架无关：同一个框架，把被测对象从一个函数换成真数据库、真 HTTP、真文件系统，写出来的就是集成测试。</p>
+					<div class="stack-grid">
+						{integrationStacks.map((s) => (
+							<div class="stack-row"><span>{s.lang}</span><strong>{s.tools}</strong></div>
+						))}
+					</div>
+					<h4>有三处把“集成测试”做成了一等公民</h4>
+					<ol class="echain">
+						{integrationCitizens.map((n) => (
+							<li><strong>{n.k}</strong><span>{n.v}</span></li>
+						))}
+					</ol>
+					<p>为集成测试而生的工具是另一类。集成测试最脏的一步是准备真依赖：起一个真实的 Postgres、Redis 或 Kafka，测完还得收干净。Testcontainers 就做这一件事：用 Docker 起临时实例，测完自动销毁。官方对 Go 版的描述直接写着 “create and clean up container-based dependencies for automated integration/smoke tests”。它有 Java、Go、.NET、Node、Python、Rust、Scala、PHP、Ruby、Elixir、Clojure、Haskell 的实现。</p>
+					<p class="evidence-note">边界：上面这些框架的官方自我定位都是单元或通用测试框架，为集成测试而生的只有 Testcontainers 这一类依赖编排工具。C++ 和 Lua 没有同等级的容器化生态：testcontainers 组织下没有 Lua 实现；C++ 有 testcontainers-native，但它建在 testcontainers-go 之上，仓库规模还小，生产可用性要自己评估。Lua 侧的常见做法是仍然用 Busted 当 runner，去驱动真宿主进程或真依赖服务，并没有一个专门的集成测试框架。换到集成范围之后，跑得慢、失败原因不唯一、依赖环境这些代价都要自己承担，所以我仍然主张窄集成测试。</p>
+				</div>
+
+				<div class="tdd-loop">
+					<p class="part-label">Loop · 红绿重构就是最小的那个回路</p>
+					<h3>红 → 绿 → 重构，转一圈就是一次最小的自验证</h3>
+					<p>AI 写代码那一节里的短循环，是整套自验证里步幅最短的一个回路。</p>
+					<ol class="echain">
+						{tddLoop.map((n) => (
+							<li><strong>{n.k}</strong><span>{n.v}</span></li>
+						))}
+					</ol>
+					<p>所以 TDD 自带一个验证回路：每往前推一步就立刻知道成没成，不用攒到最后跑一遍才知道。</p>
+					<p class="evidence-note">边界：回路短是它的优点，也是它的边界。红绿重构保证的是“我刚改的东西没坏”，不保证“整个功能能跑”；每一轮的检查只覆盖你写下的那一条断言，跨模块的假设它抓不到。这和 AI 写代码那一节里“每个子 Agent 只验证自己那一块”是同一个形状，所以它替代不了集成测试。</p>
+				</div>
+				</section>
+
+			<section class="ac-sec" id="cp5">
+				<p class="section-number">05</p>
+				<h2>Code Review</h2>
+				<p class="keyline">测试给的是一部分证据，Code Review 判断证据够不够、设计扛不扛得住。</p>
+				<div class="cr-axes-card">
+					<p class="part-label">Scope · 两个维度</p>
+					<h3>Review 分两条轴做：写法合不合规范，功能有没有做对</h3>
+					<p>两条轴要的上下文不一样、判定依据也不一样，所以我的做法是让一个主 Agent 起两个子 Agent：一个只审规范，一个只审功能，各交一份报告回来，主 Agent 汇总。</p>
+					<div class="cr-axes">
+						{crAxes.map((a) => (
+							<article class="cr-axis">
+								<p class="axis-tag">{a.tag}</p>
+								<h4>{a.name}</h4>
+								<p class="axis-q">{a.q}</p>
+								<ul class="axis-facts">
+									{a.facts.map((f) => <li><strong>{f.k}：</strong>{f.v}</li>)}
+								</ul>
+							</article>
+						))}
+					</div>
+					<h4>主 Agent 起两个子 Agent，各审一轴</h4>
+					<ol class="echain">
+						{crDispatch.map((d) => (
+							<li><strong>{d.k}</strong><span>{d.v}</span></li>
+						))}
+					</ol>
+					<h4>规范轴的判定依据有优先级</h4>
+					<ol class="echain">
+						{crStdSources.map((s) => (
+							<li><strong>{s.k}</strong><span>{s.v}</span></li>
+						))}
+					</ol>
+					<p>下面那张卡里的四件事，是功能轴上的展开：目标、证据、边界都落在功能轴上；设计那一项夹在两轴之间，Google 把它单列成 Design，我这边把它放进规范轴，用坏味道清单扫。拆成两个子 Agent 还顺带隔开了上下文：两份报告各说各的，不会再出现「带着规范的结论去审功能」。我配套的 <code>/code-review</code> 就是这个形状：一个主 Agent 起 Standards 与 Spec 两个并行子 Agent，最后把两份报告合起来。</p>
+					<p class="evidence-note">边界：这两条轴是我采用的划分，不是行业唯一分法。Google 的评审清单实际列了九项：Design、Functionality、Complexity、Tests、Naming、Comments、Style、Consistency、Documentation，归拢起来大致落在这两轴上，其中 Design 和 Complexity 夹在中间。另外，规范类问题里只有「规范文档要求」的才是硬性的；Google 写明不能仅凭个人风格偏好就拒绝一次提交。两轴都过，也不等于程序正确。</p>
+				</div>
+				<div class="review-case">
+					<h3>Review 回到需求，检查四件事</h3>
+					<ul class="finding-list">
+						<li><strong>目标：</strong>实现是否真的满足每条成功标准？</li>
+						<li><strong>证据：</strong>测试与验证输出是否真实、充分、可追溯？</li>
+						<li><strong>边界：</strong>兼容性、错误路径、数据与权限风险是否被覆盖？</li>
+						<li><strong>设计：</strong>复杂度和易变决策是否被合适的模块隐藏？</li>
+					</ul>
+				</div>
+				<div class="review-close">
+					<p class="part-label">Evidence Chain · 交付证据链</p>
+					<h4>三份工作件依次咬合，评审核对最后一环</h4>
+					<ol class="echain">
+						<li><strong>需求 Spec</strong><span>目标与成功标准</span></li>
 						<li><strong>Verification Plan</strong><span>验证方法与通过证据</span></li>
 						<li><strong>Code Review</strong><span>核对证据是否闭环</span></li>
 					</ol>
-					<p>AI 系统化扫描并给出 <strong>AI Recommendation</strong>；人判断风险并作 <strong>Human Decision</strong>。每项 Finding 必须说明失败场景和证据，严重性 P0–P3。</p>
-					<aside class="practice">
-						<p class="who">我的实际做法</p>
-						<p>实现后重新核对目标、运行结果和影响面，再让 AI 扫描、人作最终风险判断。</p>
-					</aside>
-					<p><strong>过渡：</strong>课程不是要求记住更多提示词，而是把这七个检查点带回下一个真实任务。</p>
+					<p>AI 系统化扫描，给出 Recommendation；人判断风险，作最终决定。每项 Finding 都要说明失败场景和证据，严重性分 P0–P3。</p>
+				</div>
 				</section>
 
-				<section class="ac-sec" id="templates" data-stop-section data-stop="templates">
-					<h2>模板库</h2>
-					<p class="muted">三份模板是同一条交付证据链中的连续工作件。每份主模板应能在 5–10 分钟内完成；复制按钮只复制干净的空白模板。</p>
-					{templates.map((t) => (
-						<div class="tpl-block">
-							<div class="tpl-head">
-								<h3>{t.name}</h3>
-								<button type="button" class="btn" data-copy={`#ac-${t.id}`}>复制空白模板</button>
-							</div>
-							<p class="muted">{t.desc}</p>
-							<pre class="codeblock" id={`ac-${t.id}`}><code>{t.body}</code></pre>
-						</div>
-					))}
-					<h3>已填写示例：活动奖励领取 Goal Brief</h3>
-					<pre class="codeblock"><code>{filledGoalBrief}</code></pre>
-				</section>
+			<section class="ac-sec views-sec" id="views">
+				<p class="section-number">看法</p>
+				<h2>我的一些看法</h2>
+				<p>讲到这里，说一下我自己的一些理解，不一定对。</p>
+				<ol class="steps">
+					<li>AI 一直在发展，上面讲的这套做法很可能会过时。把这几页当成“当前版本”看：具体招式会变，判断的框架能留得久一些。</li>
+					<li>软件基本功比过去更重要。写代码可以交给 AI，判断代码好坏交不出去：设计、复杂度、边界这些，决定你能不能验收它交回来的东西。可以少写代码，但要多读一些老的、好的书，判断力大多是从那儿来的。</li>
+					<li>learn in doing。现在拿到知识几乎没有门槛，难的是开始动手。别等“准备好了”再开始：挑一件真实的事做起来，边做边补，做完就多一块自己的经验。</li>
+				</ol>
+			</section>
 
-				<section class="ac-sec" id="resources" data-stop-section data-stop="resources">
+			<section class="ac-sec" id="resources">
+					<p class="section-number">资料</p>
 					<h2>延伸资料</h2>
 					<div class="srcs">
 						{resources.map((r) => (
@@ -608,164 +729,102 @@ const resources = [
 							</div>
 						))}
 					</div>
-					<p class="muted">
-						总结（85–90）：重放七个检查点；明日最小行动——下一个 AI 编程任务先写 Goal Brief；超时内容由课后网站承接。
-					</p>
 				</section>
-			</div>
 		</div>
 	</article>
 </PageLayout>
 
 <script>
-	// 课程页交互：目录联动、三拍互动揭示、chips 标记、模板复制、打印展开。无服务端，状态仅存内存。
-	document.addEventListener('click', (e) => {
-		const btn = e.target instanceof Element ? e.target.closest('[data-reveal]') : null;
-		if (!btn) return;
-		const quiz = btn.closest('[data-quiz]');
-		if (!quiz) return;
-		const panel = quiz.querySelector('[data-quiz-panel]');
-		const invite = quiz.querySelector('[data-quiz-invite]');
-		if (panel) panel.removeAttribute('hidden');
-		if (invite) invite.setAttribute('hidden', '');
-		btn.setAttribute('hidden', '');
-		quiz.classList.add('is-revealed');
-	});
-
-	document.querySelectorAll('.chip-toggle').forEach((chip) => {
-		chip.addEventListener('click', () => {
-			const on = chip.getAttribute('aria-pressed') === 'true';
-			chip.setAttribute('aria-pressed', on ? 'false' : 'true');
-		});
-	});
-
-	document.addEventListener('click', async (e) => {
-		const btn = e.target instanceof Element ? e.target.closest('[data-copy]') : null;
-		if (!btn) return;
-		const src = document.querySelector(btn.getAttribute('data-copy') ?? '');
-		if (!src) return;
-		const label = btn.textContent;
-		try {
-			await navigator.clipboard.writeText(src.textContent.trim());
-			btn.textContent = '已复制 ✓';
-		} catch {
-			btn.textContent = '复制失败，请手动选择文本';
-		}
-		setTimeout(() => {
-			btn.textContent = label;
-		}, 1800);
-	});
-
-	const sections = document.querySelectorAll('[data-stop-section]');
-	if ('IntersectionObserver' in window && sections.length) {
-		const io = new IntersectionObserver(
-			(entries) => {
-				for (const entry of entries) {
-					if (!entry.isIntersecting) continue;
-					const key = entry.target.getAttribute('data-stop');
-					document
-						.querySelectorAll('[data-stop-marker]')
-						.forEach((m) => m.classList.toggle('is-current', m.getAttribute('data-stop') === key));
-				}
-			},
-			{ rootMargin: '-15% 0px -60% 0px' }
-		);
-		sections.forEach((s) => io.observe(s));
-	}
-
-	// 打印 / PDF：展开全部讲师备注与资料折叠区，并展开互动的推荐判断面板（讲师备课需要答案在手）。
+	// 打印时展开所有 <details>，PDF 里才看得到摘要与边界。
 	window.addEventListener('beforeprint', () => {
 		document.querySelectorAll('details').forEach((d) => {
 			d.open = true;
-		});
-		document.querySelectorAll('[data-quiz]').forEach((quiz) => {
-			const panel = quiz.querySelector('[data-quiz-panel]');
-			const invite = quiz.querySelector('[data-quiz-invite]');
-			const reveal = quiz.querySelector('[data-reveal]');
-			if (panel) panel.removeAttribute('hidden');
-			if (invite) invite.setAttribute('hidden', '');
-			if (reveal) reveal.setAttribute('hidden', '');
-			quiz.classList.add('is-revealed');
 		});
 	});
 </script>
 
 <style>
 	.ac {
-		font-size: 0.95rem;
+		font-size: 1rem;
 	}
 	.ac-head {
-		margin: 0 0 2rem;
+		max-width: 900px;
+		margin: 0 0 4.5rem;
 	}
 	.ac-promise {
-		font-size: clamp(1.15rem, 2.2vw, 1.5rem);
-		line-height: 1.6;
+		max-width: 850px;
+		font-size: clamp(1.45rem, 3vw, 2.15rem);
+		line-height: 1.5;
 	}
-
-	/* ===== 双栏骨架 ===== */
-	.ac-grid {
-		display: grid;
-		grid-template-columns: 230px minmax(0, 1fr);
-		gap: 2rem;
-		align-items: start;
-	}
-	.ac-toc {
-		position: sticky;
-		top: 84px;
-		display: flex;
-		flex-direction: column;
-		padding: 0.9rem;
-		border: 1px solid var(--border);
-		border-radius: 14px;
-		background: var(--surface-raised);
-		font-size: 0.88rem;
-	}
-	.ac-toc-title {
-		margin: 0 0 0.5rem;
-		color: var(--accent-strong);
-		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		font-size: 0.78rem;
-	}
-	.ac-toc a {
-		padding: 0.32rem 0.55rem;
-		border-radius: 8px;
+	.ac-lead {
+		max-width: 760px;
 		color: var(--text-soft);
+		font-size: 1.15rem;
+	}
+	.workflow {
+		margin-bottom: 5rem;
+		padding: clamp(1.25rem, 3vw, 2rem);
+		border: 1px solid var(--border);
+		border-radius: 24px;
+		background: var(--surface-raised);
+		box-shadow: var(--shadow);
+	}
+	.section-kicker,
+	.section-number {
+		margin: 0 0 0.45rem;
+		color: var(--accent-strong);
+		font-size: 0.78rem;
+		font-weight: 800;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+	}
+	.workflow-track {
+		display: grid;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		gap: 0.65rem;
+		margin-top: 1.5rem;
+	}
+	.workflow-step {
+		display: flex;
+		min-height: 150px;
+		flex-direction: column;
+		gap: 0.45rem;
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: 16px;
+		background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface-raised));
+		color: var(--text);
 		text-decoration: none;
 	}
-	.ac-toc a:hover {
-		color: var(--accent-strong);
-		background: var(--accent-soft);
+	.workflow-step:hover {
+		border-color: var(--accent);
+		transform: translateY(-2px);
 	}
-	.ac-toc a.is-current {
+	.workflow-step small {
+		color: var(--text-soft);
+		font-size: 0.78rem;
+		line-height: 1.45;
+	}
+	.step-number {
+		display: grid;
+		width: 2rem;
+		height: 2rem;
+		place-items: center;
+		border-radius: 999px;
 		background: var(--accent);
 		color: var(--accent-soft);
-		font-weight: 700;
-	}
-	.ac-toc-hint {
-		margin: 0.6rem 0 0;
-		padding-top: 0.6rem;
-		border-top: 1px dashed var(--border);
-		color: var(--text-soft);
-		font-size: 0.76rem;
+		font-size: 0.86rem;
+		font-weight: 800;
 	}
 
 	.ac-sec {
-		margin: 0 0 2.75rem;
-		padding-bottom: 0.5rem;
+		margin: 0 0 5.5rem;
+		padding-bottom: 4.5rem;
+		border-bottom: 1px solid var(--border);
 		scroll-margin-top: 84px;
 	}
 	.ac-sec h2 {
 		margin-bottom: 1rem;
-	}
-	.ac-sec h2 small {
-		display: block;
-		margin-top: 0.25rem;
-		color: var(--text-soft);
-		font-size: 0.82rem;
-		font-weight: 400;
-		letter-spacing: 0;
 	}
 	.ac-sec h3 {
 		margin-top: 1.5rem;
@@ -784,7 +843,7 @@ const resources = [
 		border: 1px solid var(--border);
 		border-radius: 12px;
 		background: var(--code);
-		font-size: 0.84rem;
+		font-size: 0.92rem;
 		line-height: 1.65;
 		overflow-x: auto;
 		white-space: pre;
@@ -795,43 +854,11 @@ const resources = [
 		border-radius: 0;
 		font-size: inherit;
 	}
-	.btn {
-		display: inline-block;
-		padding: 0.5rem 1.1rem;
-		border: 0;
-		border-radius: 10px;
-		background: var(--accent);
-		color: var(--accent-soft);
-		font: inherit;
-		font-weight: 700;
-		font-size: 0.9rem;
-		cursor: pointer;
-	}
-	.btn:hover {
-		background: var(--accent-strong);
-	}
-	.chip {
-		display: inline-flex;
-		align-items: center;
-		padding: 0.32rem 0.75rem;
-		border: 1px solid var(--border);
-		border-radius: 999px;
-		background: var(--surface-raised);
-		color: var(--text);
-		font: inherit;
-		font-size: 0.86rem;
-		cursor: pointer;
-	}
-	.chip[aria-pressed='true'] {
-		background: var(--accent-soft);
-		border-color: var(--accent);
-		color: var(--accent-strong);
-	}
 	.tbl {
 		width: 100%;
 		margin: 0.75rem 0 1.25rem;
 		border-collapse: collapse;
-		font-size: 0.88rem;
+		font-size: 0.95rem;
 	}
 	.tbl th,
 	.tbl td {
@@ -851,153 +878,550 @@ const resources = [
 		background: var(--accent-soft);
 		border-radius: 0 10px 10px 0;
 	}
-
-	/* ===== 互动题三拍 ===== */
-	.quiz {
-		margin: 1.25rem 0;
-		padding: 1rem 1.2rem;
-		border: 1px dashed var(--accent);
-		border-radius: 14px;
-		background: color-mix(in srgb, var(--accent-soft) 45%, transparent);
+	.idea-grid {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 1rem;
+		margin: 1.5rem 0;
 	}
-	.ac [hidden] {
-		display: none !important;
+	.idea-card {
+		display: flex;
+		min-height: 170px;
+		flex-direction: column;
+		padding: 1.2rem;
+		border: 1px solid var(--border);
+		border-radius: 16px;
+		background: var(--surface-raised);
 	}
-	.quiz-tag {
-		margin: 0 0 0.4rem;
+	.idea-card span {
+		margin: 0 0 0.35rem;
 		color: var(--accent-strong);
-		font-size: 0.76rem;
-		font-weight: 700;
-		letter-spacing: 0.1em;
+		font-size: 0.75rem;
+		font-weight: 800;
+		letter-spacing: 0.12em;
 		text-transform: uppercase;
 	}
-	.quiz-q {
-		font-weight: 700;
-		margin-bottom: 0.75rem;
-	}
-	.quiz-opts {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		margin-bottom: 0.75rem;
-	}
-	.quiz-chips {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-	}
-	.quiz-invite {
-		margin: 0 0 0.9rem;
+	.idea-card p {
+		margin: 0.45rem 0 0;
 		color: var(--text-soft);
 		font-size: 0.9rem;
 	}
-	.quiz-panel {
-		margin-top: 0.9rem;
-		padding: 0.9rem 1rem;
-		border-left: 3px solid var(--accent);
-		border-radius: 0 10px 10px 0;
+	.alignment-part {
+		margin-top: 3.5rem;
+		padding-top: 2.5rem;
+		border-top: 1px dashed var(--border);
+	}
+	.part-label {
+		margin: 0 0 0.4rem;
+		color: var(--accent-strong);
+		font-size: 0.76rem;
+		font-weight: 800;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+	}
+	.prompt-contract {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.8rem;
+		margin: 1.5rem 0;
+	}
+	.contract-card {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 0.2rem 0.65rem;
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: 14px;
 		background: var(--surface-raised);
 	}
-	.quiz-panel p {
-		margin: 0 0 0.5rem;
-	}
-	.quiz.is-revealed .chip[data-good]::after {
-		content: '· 推荐';
-		margin-left: 0.4rem;
-		color: var(--accent-strong);
-		font-weight: 700;
-	}
-	.quiz.is-revealed .chip[data-noise]::after {
-		content: '· 噪声';
-		margin-left: 0.4rem;
-		color: #b4540a;
-		font-weight: 700;
-	}
-
-	/* ===== 备注与实际做法 ===== */
-	.notes {
-		margin: 1rem 0;
-		padding: 0.7rem 1rem;
-		border: 1px dashed var(--border);
-		border-radius: 12px;
-		color: var(--text-soft);
-		font-size: 0.88rem;
-	}
-	.notes summary {
-		cursor: pointer;
-		font-weight: 700;
-		color: var(--text);
-	}
-	.notes ul,
-	.notes p {
-		margin-bottom: 0.5rem;
-	}
-	.practice {
-		margin: 1.1rem 0;
-		padding: 0.8rem 1rem;
-		border-left: 3px solid var(--accent);
+	.contract-card span {
+		grid-row: 1 / 3;
+		align-self: start;
+		padding: 0.18rem 0.4rem;
+		border-radius: 6px;
 		background: var(--accent-soft);
-		border-radius: 0 12px 12px 0;
-		font-size: 0.92rem;
-	}
-	.practice .who {
-		margin: 0 0 0.3rem;
 		color: var(--accent-strong);
-		font-size: 0.78rem;
-		font-weight: 700;
-		letter-spacing: 0.08em;
+		font-size: 0.68rem;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
 	}
-	.practice p {
+	.contract-card p {
+		grid-column: 2;
+		margin: 0;
+		color: var(--text-soft);
+		font-size: 0.83rem;
+		line-height: 1.5;
+	}
+	.contract-card:last-child {
+		grid-column: 1 / -1;
+	}
+	.prompt-extensions {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 0.8rem;
+		margin: 1.5rem 0;
+	}
+	.prompt-extensions > div {
+		padding: 1rem;
+		border-top: 3px solid var(--accent);
+		border-radius: 0 0 12px 12px;
+		background: var(--surface-raised);
+	}
+	.prompt-extensions p {
+		margin: 0.45rem 0 0;
+		color: var(--text-soft);
+		font-size: 0.84rem;
+		line-height: 1.5;
+	}
+	.verification-flow,
+	.validation-grid {
+		display: grid;
+		gap: 0.8rem;
+		margin: 1.5rem 0;
+		padding: 0;
+		list-style: none;
+	}
+	.verification-flow {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+	.validation-grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+	.verification-flow li,
+	.validation-grid li {
+		display: flex;
+		min-height: 132px;
+		flex-direction: column;
+		gap: 0.45rem;
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: 14px;
+		background: var(--surface-raised);
+	}
+	.verification-flow span,
+	.validation-grid span {
+		color: var(--text-soft);
+		font-size: 0.86rem;
+		line-height: 1.5;
+	}
+	.takeaway,
+	.review-case {
+		margin: 1.25rem 0;
+		padding: 1rem 1.2rem;
+		border: 1px solid var(--accent);
+		border-radius: 16px;
+		background: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+	}
+	.context-choice {
+		display: grid;
+		grid-template-columns: 1.25fr 0.75fr;
+		gap: 1rem;
+		margin-top: 1.5rem;
+	}
+	.context-choice > div {
+		padding: 1.2rem;
+		border: 1px solid var(--border);
+		border-radius: 16px;
+		background: var(--surface-raised);
+	}
+	.context-choice h3 {
+		margin-top: 0;
+	}
+	.context-choice .noise {
+		opacity: 0.72;
+	}
+	.spec-block,
+	.context-reality,
+	.context-memory,
+	.context-tools,
+	.ctx-mix,
+	.ctx-cache,
+	.ctx-steps,
+	.tdd-why,
+	.agent-orch,
+	.itest,
+	.tdd-loop,
+	.cr-axes-card,
+	.review-close {
+		margin-top: 2rem;
+		padding: clamp(1.2rem, 3vw, 2rem);
+		border: 1px solid var(--border);
+		border-radius: 20px;
+		background: var(--surface-raised);
+	}
+	.spec-block h3,
+	.context-reality h3,
+	.context-memory h3,
+	.context-tools h3,
+	.ctx-mix h3,
+	.ctx-cache h3,
+	.ctx-steps h3,
+	.tdd-why h3,
+	.agent-orch h3,
+	.itest h3,
+	.tdd-loop h3,
+	.cr-axes-card h3,
+	.window-budget h3 {
+		margin-top: 0;
+	}
+	.itest h4,
+	.cr-axes-card h4,
+	.review-close h4 {
+		margin: 1.75rem 0 0.6rem;
+		font-size: 1.05rem;
+	}
+	.cr-axes {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1rem;
+		margin: 1.25rem 0 0;
+	}
+	.cr-axis {
+		min-width: 0;
+		padding: 1.1rem 1.2rem;
+		border: 1px solid var(--border);
+		border-radius: 16px;
+		background: var(--surface);
+	}
+	.axis-tag {
+		margin: 0;
+		color: var(--accent-strong);
+		font-size: 0.76rem;
+		font-weight: 800;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+	}
+	.cr-axis h4 {
+		margin: 0.35rem 0 0.5rem;
+		font-size: 1rem;
+	}
+	.axis-q {
+		margin: 0;
+		color: var(--text-soft);
+		font-size: 0.9rem;
+		line-height: 1.55;
+	}
+	.axis-facts {
+		display: grid;
+		gap: 0.5rem;
+		margin: 1rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	.axis-facts li {
+		min-width: 0;
+		font-size: 0.84rem;
+		line-height: 1.55;
+		overflow-wrap: anywhere;
+	}
+	.axis-facts strong {
+		color: var(--accent-strong);
+		font-weight: 700;
+	}
+	.stack-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.5rem 1rem;
+		margin: 1.25rem 0 0;
+	}
+	.stack-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.35rem 0.7rem;
+		min-width: 0;
+		padding: 0.55rem 0.85rem;
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		background: var(--surface);
+	}
+	.stack-row span {
+		flex: 0 0 10.5rem;
+		color: var(--accent-strong);
+		font-weight: 700;
+		font-size: 0.85rem;
+	}
+	.stack-row strong {
+		flex: 1 1 auto;
+		min-width: 0;
+		color: var(--text-soft);
+		font-weight: 500;
+		font-size: 0.85rem;
+		overflow-wrap: anywhere;
+	}
+	.agent-roles {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1rem;
+		margin: 1.25rem 0;
+	}
+	.agent-roles > div {
+		min-width: 0;
+		padding: 1rem 1.1rem;
+		border: 1px solid var(--border);
+		border-radius: 14px;
+		background: var(--surface);
+	}
+	.agent-roles p {
 		margin: 0;
 	}
-
-	/* ===== 提示词对比 / 模块对比 / 步骤 / 证据链 ===== */
-	.prompt-grid {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 1rem;
-		margin: 1rem 0;
+	.agent-roles .part-label {
+		margin-bottom: 0.35rem;
 	}
-	.prompt-card {
-		padding: 0.9rem 1rem;
+	.agent-dag {
+		margin-top: 1.75rem;
+		padding-top: 1.4rem;
+		border-top: 1px solid var(--border);
+	}
+	.agent-dag h4 {
+		margin: 0 0 0.6rem;
+		font-size: 1.05rem;
+	}
+	.dag-compare {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1rem;
+		margin: 1.25rem 0;
+	}
+	.dag-compare > div {
+		min-width: 0;
+		padding: 1rem 1.1rem;
 		border: 1px solid var(--border);
 		border-radius: 14px;
-		background: var(--surface-raised);
+		background: var(--surface);
 	}
-	.prompt-card h4 {
-		margin: 0 0 0.4rem;
-		font-size: 0.95rem;
+	.dag-compare .part-label {
+		margin-bottom: 0.6rem;
 	}
-	.prompt-bad h4 {
-		color: #b4540a;
+	.dag-compare > div > p:last-child {
+		margin: 0.7rem 0 0;
+		color: var(--text-soft);
+		font-size: 0.85rem;
+		line-height: 1.5;
 	}
-	.prompt-good h4 {
+	.dag-legend {
+		margin: 0;
+		color: var(--text-soft);
+		font-size: 0.85rem;
+		line-height: 1.5;
+	}
+	.dag-svg {
+		display: block;
+		width: 100%;
+		max-width: 460px;
+		height: auto;
+		margin: 0.2rem auto 0;
+	}
+	.dag-wave {
+		fill: color-mix(in srgb, var(--accent) 20%, var(--surface));
+	}
+	.dag-wave-label {
+		fill: var(--text-soft);
+		font-size: 10px;
+		font-weight: 500;
+		text-anchor: start;
+	}
+	.dag-node text {
+		fill: var(--accent-strong);
+		font-size: 15px;
+		font-weight: 700;
+		text-anchor: middle;
+	}
+	.dag-node rect {
+		fill: var(--accent-soft);
+		stroke: var(--accent);
+		stroke-width: 1.4;
+	}
+	.dag-node.is-stub rect {
+		fill: var(--surface);
+		stroke: var(--text-soft);
+		stroke-dasharray: 4 3;
+	}
+	.dag-node.is-stub text {
+		fill: var(--text-soft);
+	}
+	.dag-edge {
+		fill: none;
+		stroke: var(--accent);
+		stroke-width: 1.6;
+	}
+	.dag-edge.is-ghost {
+		stroke: var(--text-soft);
+		stroke-dasharray: 4 3;
+	}
+	.dag-arrow-head {
+		fill: var(--accent);
+	}
+	.dag-arrow-head.is-ghost {
+		fill: var(--text-soft);
+	}
+	.tdd-scope {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1rem;
+		margin: 1.25rem 0;
+	}
+	.tdd-scope > div {
+		min-width: 0;
+		padding: 1rem 1.1rem;
+		border: 1px solid var(--border);
+		border-radius: 14px;
+		background: var(--surface);
+	}
+	.tdd-scope .codeblock {
+		margin-bottom: 0;
+	}
+	.tdd-scope .overreach {
+		opacity: 0.72;
+	}
+	.ctx-mix-bar {
+		display: flex;
+		height: 20px;
+		margin: 1.25rem 0 0;
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		overflow: hidden;
+	}
+	.ctx-mix-bar span {
+		min-width: 3px;
+	}
+	.ctx-mix-bar .t1,
+	.ctx-mix-legend .t1 { background: var(--accent); }
+	.ctx-mix-bar .t2,
+	.ctx-mix-legend .t2 { background: color-mix(in srgb, var(--accent) 74%, var(--surface-raised)); }
+	.ctx-mix-bar .t3,
+	.ctx-mix-legend .t3 { background: color-mix(in srgb, var(--accent) 54%, var(--surface-raised)); }
+	.ctx-mix-bar .t4,
+	.ctx-mix-legend .t4 { background: color-mix(in srgb, var(--accent) 36%, var(--surface-raised)); }
+	.ctx-mix-bar .t5,
+	.ctx-mix-legend .t5 { background: color-mix(in srgb, #c6a15b 80%, var(--surface-raised)); }
+	.ctx-mix-bar .t6,
+	.ctx-mix-legend .t6 { background: var(--border); }
+	.ctx-mix-legend {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+		gap: 0.9rem 1.4rem;
+		margin: 1.1rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	.ctx-mix-legend li {
+		display: grid;
+		grid-template-columns: 12px 1fr auto;
+		gap: 0.1rem 0.55rem;
+		align-items: center;
+	}
+	.ctx-mix-legend i {
+		grid-row: 1 / 3;
+		width: 12px;
+		height: 12px;
+		border-radius: 4px;
+	}
+	.ctx-mix-legend b {
+		font-weight: 700;
+	}
+	.ctx-mix-legend .pct {
+		color: var(--accent-strong);
+		font-weight: 800;
+		font-variant-numeric: tabular-nums;
+	}
+	.ctx-mix-legend .note {
+		grid-column: 2 / -1;
+		color: var(--text-soft);
+		font-size: 0.8rem;
+		line-height: 1.45;
+	}
+	.share-note {
+		margin: 1.25rem 0 0;
+		padding-left: 1rem;
+		border-left: 2px solid var(--border);
+		color: var(--text-soft);
+	}
+	.share-note strong {
 		color: var(--accent-strong);
 	}
-	.mgrid {
+	.position-curve {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		align-items: end;
+		gap: 0.8rem;
+		min-height: 190px;
+		margin: 1.5rem 0 1rem;
+		padding: 1rem 1rem 0;
+		border-bottom: 1px solid var(--border);
+	}
+	.position-curve > div {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		gap: 0.25rem;
+		padding: 1rem;
+		border-radius: 14px 14px 0 0;
+		background: var(--accent-soft);
+		text-align: center;
+	}
+	.position-high {
+		min-height: 150px;
+	}
+	.position-low {
+		min-height: 82px;
+		opacity: 0.68;
+	}
+	.position-curve span,
+	.evidence-note {
+		color: var(--text-soft);
+		font-size: 0.8rem;
+	}
+	.evidence-note {
+		margin-bottom: 0;
+	}
+	.window-budget {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: 1rem;
 		margin: 1rem 0;
 	}
-	.mcard {
-		padding: 0.9rem 1rem;
+	.window-budget > div {
+		padding: 1.2rem;
 		border: 1px solid var(--border);
-		border-radius: 14px;
+		border-radius: 16px;
 		background: var(--surface-raised);
 	}
-	.mcard h4 {
-		margin: 0 0 0.4rem;
-		font-size: 0.95rem;
-	}
-	.mcard-deep {
+	.window-budget .working-set {
 		border-color: var(--accent);
+		background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface-raised));
 	}
+	.context-chain li {
+		min-width: 190px;
+	}
+	.finding-list {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.75rem;
+		padding: 0;
+		list-style: none;
+	}
+	.finding-list li {
+		padding: 0.9rem;
+		border-radius: 12px;
+		background: var(--surface-raised);
+	}
+
+	/* ===== 步骤 / 证据链 ===== */
 	.steps {
 		margin: 0.75rem 0 1.25rem;
 		padding-left: 1.4rem;
 	}
 	.steps li {
 		margin-bottom: 0.35rem;
+	}
+	/* 看法栏目的三点是整段话，不是一行一步，段间距要大一点 */
+	.views-sec .steps li {
+		margin-bottom: 0.85rem;
+	}
+	.views-sec .steps li:last-child {
+		margin-bottom: 0;
 	}
 	.echain {
 		display: flex;
@@ -1021,24 +1445,17 @@ const resources = [
 		color: var(--text-soft);
 		font-size: 0.82rem;
 	}
+	/* 卡片本身已经是 surface-raised，里面的证据链格子要换一层底色才看得出边界 */
+	.cr-axes-card .echain li,
+	.itest .echain li,
+	.tdd-loop .echain li {
+		background: var(--surface);
+	}
 
-	/* ===== 模板库与资料 ===== */
-	.tpl-block {
-		margin: 1.25rem 0;
-	}
-	.tpl-head {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-		align-items: center;
-		justify-content: space-between;
-	}
-	.tpl-head h3 {
-		margin: 0;
-	}
+	/* ===== 延伸资料 ===== */
 	.srcs {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
 		gap: 1rem;
 		margin: 1rem 0;
 	}
@@ -1075,58 +1492,74 @@ const resources = [
 		margin: 0.5rem 0 0;
 	}
 
-	/* ===== 响应式降级 ===== */
+	/* ===== 响应式 ===== */
 	@media (max-width: 900px) {
-		.ac-grid {
+		.workflow-track {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.context-choice,
+		.window-budget,
+		.tdd-scope,
+		.agent-roles,
+		.dag-compare,
+		.stack-grid,
+		.cr-axes,
+		.validation-grid {
 			grid-template-columns: 1fr;
-			gap: 1.25rem;
 		}
-		.ac-toc {
-			position: static;
-			flex-direction: row;
-			flex-wrap: wrap;
-			align-items: center;
-			gap: 0.25rem;
+		.prompt-contract {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
-		.ac-toc-title,
-		.ac-toc-hint {
-			display: none;
+		.prompt-extensions {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
-		.prompt-grid,
-		.mgrid {
+	}
+	@media (max-width: 640px) {
+		.workflow-track,
+		.idea-grid,
+		.finding-list,
+		.verification-flow,
+		.prompt-contract,
+		.prompt-extensions,
+		.position-curve {
 			grid-template-columns: 1fr;
+		}
+		.codeblock {
+			font-size: 0.84rem;
+		}
+		.position-curve {
+			align-items: stretch;
+			min-height: 0;
+			padding: 0;
+			border-bottom: 0;
+		}
+		.position-high,
+		.position-low {
+			min-height: 0;
+			border-radius: 12px !important;
+		}
+		.workflow-step {
+			min-height: 0;
+		}
+	}
+	/* 语言名和工具名并排时，工具那一栏最窄会只剩 ~200px，
+	   `net/http/httptest（内置）` 这类长标识符塞不进去，会把行内右内边距撑掉。
+	   窄屏改成上下两行，工具那一栏拿到整行宽度。 */
+	@media (max-width: 560px) {
+		.stack-row span {
+			flex: 1 1 100%;
 		}
 	}
 
 	/* ===== 打印 / PDF ===== */
 	@media print {
-		.ac-toc {
-			position: static;
-			border: 0;
-			background: none;
-		}
-		.ac-toc a.is-current {
-			background: none;
-			color: var(--text);
-			font-weight: 400;
-		}
-		.ac-toc-hint {
-			display: none;
-		}
 		.ac-sec {
 			break-inside: auto;
 		}
-		.btn,
-		.quiz-invite {
-			display: none !important;
-		}
+		.workflow-step,
 		.codeblock,
 		.tbl,
-		.quiz,
-		.notes,
-		.practice,
-		.mcard,
-		.prompt-card,
+		.cr-axis,
 		.src-card {
 			break-inside: avoid;
 		}
