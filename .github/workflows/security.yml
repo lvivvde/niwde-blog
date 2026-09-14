@@ -38,6 +38,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --location --max-time 20 https://yangjiexin.com/ | grep -Fq 'Niwde'
-          curl --fail --silent --show-error --location --max-time 20 https://yangjiexin.com/search/ | grep -Fq '搜索'
-          curl --fail --silent --show-error --location --max-time 20 https://yangjiexin.com/rss.xml | grep -Fq '<rss'
+          # Download first, then assert. Piping curl into `grep -q` lets grep exit on
+          # its first match and close the pipe, so curl dies writing the rest of the
+          # body (exit 23) and pipefail fails the job.
+          body="$RUNNER_TEMP/http-body"
+          check() {
+            curl --fail --silent --show-error --location --max-time 20 -o "$body" "$1"
+            grep -Fq "$2" "$body"
+            echo "ok: $1 contains $2"
+          }
+          check https://yangjiexin.com/ 'Niwde'
+          check https://yangjiexin.com/search/ '搜索'
+          check https://yangjiexin.com/rss.xml '<rss'
