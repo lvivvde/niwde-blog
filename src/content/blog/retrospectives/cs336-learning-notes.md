@@ -111,3 +111,35 @@ draft: false
    估算方法相同：先取设备在该精度、该计算模式下的**稠密峰值**，再用模型每步的理论 FLOPs 和实测每步时间计算 `MFU ≈ 每步模型 FLOPs ÷ (每步秒数 × 卡数 × 单卡峰值 FLOP/s)`。昇腾工具也提供按算子计算 FLOPs、实测耗时和芯片峰值的分析功能；但**算子 MFU**仍不能直接代表完整训练的 MFU。不同平台的结果只有在统计口径和工作负载一致时才适合比较。
 
 相关资料：[Stanford CS336 第 2 讲](https://github.com/stanford-cs336/lectures/blob/main/lecture_02.py)、[NVIDIA H100 规格](https://www.nvidia.com/en-gb/data-center/h100/)、[NVIDIA 2:4 结构化稀疏说明](https://developer.nvidia.com/blog/exploiting-ampere-structured-sparsity-with-cusparselt/)、[NVIDIA 矩阵乘法 FLOPs 计算](https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html)、[NVIDIA GPU 性能与数据搬运](https://docs.nvidia.com/deeplearning/performance/dl-performance-gpu-background/index.html)、[昇腾算子 MFU 分析工具](https://github.com/Ascend/msprof-analyze/blob/master/docs/zh/advanced_features/operator_mfu_instruct.md)。
+
+### GPU 计算、数据搬运与激活检查点
+
+#### 学习内容与目前的理解
+
+这一节把 GPU 的性能看成两种资源的配合：**计算吞吐**决定每秒能做多少运算，**内存带宽**决定每秒能搬多少数据。数据要从显存进入计算单元，结果也要写回。对逐元素加法、乘法等操作，每读入几个数只做少量计算，往往更容易被数据搬运限制。课程用“算术强度”（运算次数 ÷ 搬运字节数）判断某个操作更接近内存瓶颈还是计算瓶颈。
+
+我最初把“向量点积”和“大矩阵乘法”混在了一起。长度为 `n` 的**两个向量点积**只需约 `n` 次乘加，也要读取约 `2n` 个输入元素，仍可能受内存限制；两个 `n × n` **矩阵相乘**则约需 `2n³` FLOPs，输入和输出矩阵各有 `n²` 量级的元素。若分块计算时能反复使用已读入的数据，算术强度就会提高，大矩阵乘法更可能受计算吞吐限制。注意力中的 `QKᵀ` 就是把许多向量点积组织成矩阵乘法。这里的 `n³` 来自矩阵的三个维度，**不是因为模型训练了 `n` 轮**；实际搬运次数、矩阵尺寸和硬件也会影响瓶颈。
+
+Transformer 训练包含大量可并行的矩阵乘法，能较好利用 GPU 的矩阵计算能力；这有助于理解两者为什么适配。但**不是 Transformer 的每一步都受计算限制**：逐元素操作、较小的矩阵或小批量推理中的矩阵与向量相乘，可能仍受内存限制。以前的循环网络、卷积网络也会使用矩阵乘法，因此不能把 Transformer 的发展简单归因为“此前的模型只会做简单运算、都卡在搬运上”。Transformer 训练中对序列位置的并行性同样重要。
+
+#### `6ND` 是在估算什么
+
+课程里的近似式是 **`总训练 FLOPs ≈ 6 × 参数数 × 训练 token 数`**，常写作 `6ND`（`N` 为参数数，`D` 为 token 数）；如果用 `P` 表示参数、`N` 表示 token，也可以写成 `6NP`，字母本身并不重要。对一个以大矩阵乘法为主的简化模型，处理一个 token 时，前向传播约需每个参数 **2 FLOPs**；反向传播要分别求输入和权重的梯度，约需 **4 FLOPs**，合计约 **6 FLOPs/参数/token**。这里的 2 和 4 是乘加等运算的计数，不是“前向两轮、反向四轮”。
+
+这是一笔**粗略的算力账**：真实 Transformer 还包含注意力、归一化等操作，长上下文、特殊架构或激活重算会使实际成本偏离 `6ND`。知道总 FLOPs 后，再除以“卡数 × 单卡对应精度的稠密峰值 FLOP/s × 预估 MFU”，可粗估训练秒数，最后换算成天数。它提供规模感，不是精确工期。
+
+#### 为什么要保存中间结果
+
+我把课程的简化网络想成 `A → B → C → … → Z`，有助于理解层与层之间会产生中间张量。更准确地说，每层会使用自己的权重和上一层的输出，还可能有注意力、归一化、残差等分支；**层数**是一次前向传播穿过的网络深度，**训练轮次**是反复处理数据并更新参数，两者不同。反向传播通常需要前向过程中的部分激活值，所需内容由计算图确定，并非到了某一层才随机猜要找什么。
+
+以连续 `L` 层的简化网络为例，课程给出三种便于理解的取舍：
+
+- **全部保存：**保存各层所需的激活值，额外激活内存随 `L` 近似线性增长，反向时不用重算这些值。
+- **完全不保存：**若每次需要某层激活值都从输入重新计算到该层，激活存储可降到近似常数级，但这种朴素做法会造成约 `O(L²)` 的重复计算。
+- **间隔保存检查点：**每隔约 `√L` 层保存一次；反向传播到某段时，从最近的检查点重算该段。简化模型的峰值激活存储约为 `O(√L)`，额外前向重算约为 `O(L)`。这就是**激活检查点**：用更多计算换更少显存，检查点不必对应原始语料或每一轮训练。
+
+#### 学习感受
+
+这一节出现了不少陌生算子和公式，我目前更多是在接收和消化，还不能熟练推导每一项。现阶段最大的收获，是建立了宏观的资源账本：为什么大矩阵运算适合 GPU、为什么计算快不代表训练一定快，以及如何从参数量、数据量、显存、峰值算力和 MFU 大致估算模型训练的规模与时间。
+
+相关资料：[Stanford CS336 第 2 讲](https://github.com/stanford-cs336/lectures/blob/main/lecture_02.py)、[NVIDIA 矩阵乘法的计算与内存瓶颈](https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html)、[PyTorch 激活检查点说明](https://docs.pytorch.org/docs/2.14/checkpoint.html)、[激活检查点论文](https://arxiv.org/abs/1604.06174)、[Transformer 原论文](https://arxiv.org/abs/1706.03762)。
