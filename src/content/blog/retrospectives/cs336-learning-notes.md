@@ -73,3 +73,41 @@ draft: false
    - **不要把所有低位格式混为一谈。**FP16/BF16 本身没有“每块数据的自定义上下界”；FP8、FP4 的一些实际方案则会配合每张量或每块的缩放因子使用。混合精度训练中的“梯度缩放”又是为避免小梯度下溢的训练技巧，不等于修改 FP16 的位布局。
 
 相关资料：[Stanford CS336 第 2 讲](https://github.com/stanford-cs336/lectures/blob/main/lecture_02.py)、[NVIDIA 浮点格式与数值范围](https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/mathematical-functions.html)、[PyTorch 量化参数](https://docs.pytorch.org/docs/main/quantization-support.html#quantized-dtypes-and-quantization-schemes)、[NVIDIA FP8 与 FP4 缩放](https://docs.nvidia.com/cuda/cublas/)、[NVIDIA NVFP4 数据格式](https://docs.nvidia.com/deeplearning/transformer-engine/features/low_precision_training/nvfp4/nvfp4.html)、[PyTorch 混合精度训练](https://docs.pytorch.org/docs/stable/accelerator/amp.html)。
+
+### MFU：标称算力与实际训练效率
+
+#### 学习内容
+
+课程介绍了浮点运算次数（FLOPs）与每秒浮点运算次数（FLOP/s）。硬件标称的 FLOP/s 是特定精度、计算方式和条件下的峰值；实际运行矩阵乘法或训练模型时，通常达不到这个峰值。课程用“实际完成的运算量 ÷ 耗时 ÷ 对应的硬件峰值”引出 MFU（Model FLOPs Utilization，模型浮点运算利用率）。我听到稀疏计算约 1800、稠密计算约 900，以及利用率达到 0.5 算不错，于是想弄清这些数字的含义。
+
+这里有一个口径差别：课程先用**单次矩阵乘法**演示这个比值，分子是 `2 × M × N × K ÷ 实测耗时`；严格讨论**完整模型的 MFU**时，分子应是每步有用的模型计算量乘以每秒训练步数，分母是参与训练的所有加速卡在相同精度下的峰值总和。单个算子跑到 80%，不代表整段训练也达到 80%。
+
+#### 我的疑问与 AI 的纠偏
+
+1. **课程把约 1800 的稀疏峰值除以 2，得到约 900 的稠密峰值：这是否就是稠密计算的正确标称值？为什么稀疏矩阵可以翻倍？**
+
+   **AI 的回答：**是的，若该规格表的约 1800 指同一精度下的**稀疏矩阵峰值**，而训练使用普通稠密矩阵，就应选约 900 的**稠密矩阵峰值**作分母；不能再除一次。课程以 H100 为例，取其 BF16/FP16 稀疏峰值约 1979 TFLOP/s，再除以 2 估算稠密峰值约 989.5 TFLOP/s。具体数字会随卡型、精度和规格条件变化。
+
+   稠密矩阵没有可跳过的结构；NVIDIA 的一种硬件稀疏加速要求 **2:4 结构化稀疏**，即每连续 4 个权重中至少 2 个为 0，并用额外信息记录非零值的位置。硬件跳过与 0 相乘的操作，因此可在相近时间完成约两倍的*等效*矩阵工作量。这不表示任意矩阵中碰巧有一些 0 就能自动翻倍，更不表示稠密模型能使用稀疏峰值。
+
+2. **如果 MFU 只有 0.5，剩下的“50% 算力”在做什么？是否主要花在数据搬运上？**
+
+   **AI 的回答：**MFU 为 0.5 表示“单位墙钟时间内完成的有用模型 FLOP/s，约为选定峰值的一半”，**不等于 GPU 有一半时间完全闲着**。缺口也不能直接按百分比分配给某一件事。
+
+   - 权重和激活值需要在显存与计算单元之间移动；数据复用少时，计算单元可能等数据。跨卡训练还会有梯度同步、参数传输和相互等待。
+   - 训练包含归一化、激活函数、优化器更新等操作。它们可能占时间，却不能像大型矩阵乘法一样达到 Tensor Core 的标称峰值；小矩阵、启动算子、CPU 准备数据及同步也会拖慢整步训练。
+   - 为节省显存而重算激活值时，芯片可能仍在忙碌，但这些额外运算不一定计入“有用模型 FLOPs”，整步耗时却增加。因此，MFU 衡量的是**模型训练方案在这套硬件上的效率**，不是“这张卡本身好不好”的固定属性。课程说 0.5 不错，是经验判断，不是所有模型的统一及格线。
+
+3. **浮点加法不是应该比乘法快吗？为什么课程计算矩阵乘法时，把一次乘法和一次加法都算进去，却没有分别考虑速度？**
+
+   **AI 的回答：**课程数的是**工作量**，不是假定两种运算各用同样长的时间。计算矩阵乘法 `C = A × B` 时，每个乘积通常要累加到结果中，所以近似有 `M × N × K` 次乘法和同量级的加法，总计约 `2 × M × N × K` FLOPs。硬件常用融合乘加（FMA）执行 `a × b + c`；一次 FMA 按惯例计作 **2 FLOPs**，标称矩阵算力也沿用这个口径。
+
+   加法不必然在整个任务中更快：单独做两个大矩阵的逐元素加法，往往主要耗在读取和写回数据；大矩阵乘法则能反复使用读入的数据，并由专门的矩阵计算单元处理。应比较完整算子的吞吐、数据搬运和硬件路径，而不是只比较一次标量加法与乘法的直觉速度。这里“乘加算 2 FLOPs”与上一问“稀疏峰值除以 2 得稠密峰值”是**两种独立的计算**。
+
+4. **课程有没有估算国产 CPU、GPU 或其他 AI 加速卡的 MFU？如果没有，能否用同样的方法估算？**
+
+   **AI 的回答：**查阅这一讲的示例代码，峰值算力的设备分支列了 A100、H100、B200，没有给国产设备一个通用 MFU 数字。国产 AI 训练设备也包括 NPU，不能把所有设备当成同一张“国产 GPU”。MFU 必须绑定**具体设备、精度、模型、批量、并行方式和实测训练时间**，仅凭芯片标称 FLOP/s 算不出来。
+
+   估算方法相同：先取设备在该精度、该计算模式下的**稠密峰值**，再用模型每步的理论 FLOPs 和实测每步时间计算 `MFU ≈ 每步模型 FLOPs ÷ (每步秒数 × 卡数 × 单卡峰值 FLOP/s)`。昇腾工具也提供按算子计算 FLOPs、实测耗时和芯片峰值的分析功能；但**算子 MFU**仍不能直接代表完整训练的 MFU。不同平台的结果只有在统计口径和工作负载一致时才适合比较。
+
+相关资料：[Stanford CS336 第 2 讲](https://github.com/stanford-cs336/lectures/blob/main/lecture_02.py)、[NVIDIA H100 规格](https://www.nvidia.com/en-gb/data-center/h100/)、[NVIDIA 2:4 结构化稀疏说明](https://developer.nvidia.com/blog/exploiting-ampere-structured-sparsity-with-cusparselt/)、[NVIDIA 矩阵乘法 FLOPs 计算](https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html)、[NVIDIA GPU 性能与数据搬运](https://docs.nvidia.com/deeplearning/performance/dl-performance-gpu-background/index.html)、[昇腾算子 MFU 分析工具](https://github.com/Ascend/msprof-analyze/blob/master/docs/zh/advanced_features/operator_mfu_instruct.md)。
