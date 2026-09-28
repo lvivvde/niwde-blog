@@ -143,3 +143,20 @@ Transformer 训练包含大量可并行的矩阵乘法，能较好利用 GPU 的
 这一节出现了不少陌生算子和公式，我目前更多是在接收和消化，还不能熟练推导每一项。现阶段最大的收获，是建立了宏观的资源账本：为什么大矩阵运算适合 GPU、为什么计算快不代表训练一定快，以及如何从参数量、数据量、显存、峰值算力和 MFU 大致估算模型训练的规模与时间。
 
 相关资料：[Stanford CS336 第 2 讲](https://github.com/stanford-cs336/lectures/blob/main/lecture_02.py)、[NVIDIA 矩阵乘法的计算与内存瓶颈](https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html)、[PyTorch 激活检查点说明](https://docs.pytorch.org/docs/2.14/checkpoint.html)、[激活检查点论文](https://arxiv.org/abs/1604.06174)、[Transformer 原论文](https://arxiv.org/abs/1706.03762)。
+
+## 2026-09-28
+
+### 延伸思考：为什么 GPU 的计算能力会受数据搬运限制？
+
+#### 我的想法与疑问
+
+接着昨天关于算术强度和数据搬运的内容，我想到：如果从显存取数据比执行浮点计算更容易成为瓶颈，为什么还要把计算单元做得那么快？消费级显卡玩游戏也要用计算单元；如果最大负载下数据始终供应不上，计算能力似乎会被浪费。H100、B200 这类数据中心加速卡的用户是谁，过去和现在是否也面临这个问题？计算与搬运是两套互不相关的设计，还是共同决定性能？
+
+#### AI 的回答
+
+- **先分清“慢”指什么。**显存搬运与计算的规格分别用“字节/秒”和“浮点运算/秒”表示，不能直接比较谁快多少倍。这里讨论的通常是 GPU **显存与片上计算单元之间**的数据供给，不一定是 CPU 向 GPU 传文件。寄存器、片上共享内存和缓存比显存更靠近计算单元；访问不同层级的延迟、带宽也不同。GPU 会让许多线程并行并尽量重叠搬运与计算，所以性能还取决于程序如何组织数据。
+- **为什么不把显存带宽配到足以支持“每次取数只计算一次”？**芯片内可以并排布置大量算术单元；从容量更大的显存取数，还要经过受封装布线和功耗约束的数据通道。一张卡必须在面积、带宽、显存容量、散热和成本之间取舍。以 H100 SXM 的 BF16 为例，其稀疏矩阵峰值约 1979 TFLOP/s，普通稠密计算约为一半，即 990 TFLOP/s；显存带宽约 3.35 TB/s。两者之比约为 **295 FLOP/字节**：若数据都来自显存，要逼近这个矩阵计算峰值，平均每搬运 1 字节就要做约 295 次运算。这是所需的**算术强度**，不是“计算比搬运快 295 倍”。逐元素操作达不到这一强度，会受搬运限制；大矩阵乘法能多次复用片上数据，可能逼近计算峰值。因此，即使某些程序用不满计算单元，高计算吞吐对另一些程序仍有价值。
+- **游戏和数据中心任务的瓶颈会变。**消费级 GPU 的图形着色、纹理读取、光追等都要消耗计算或搬运资源；缓存和压缩可减少显存流量，具体游戏场景可能受计算、带宽或其他环节限制。H100、B200 更准确地说是**数据中心 AI 加速卡**：云服务商、AI 公司、企业和科研机构采购或租用它们，用于模型训练、推理以及其他大规模计算。它们也会遇到带宽瓶颈，因此历代产品一直在提升显存带宽、缓存与卡间互联。增加计算与增加带宽是共同演进的；小批量、一次生成一个 token 且反复读取大量权重的推理任务，尤其容易受显存带宽限制。
+- **计算与搬运既有分工，也紧密协作。**计算单元执行算术，内存控制器和数据通路负责供给；缓存、共享内存、调度器把它们连接起来。软件还会通过分块计算、复用数据、融合算子等方式减少对显存的反复读写。若某个程序确实总在等显存，再增加计算单元通常不会让它更快；这说明应针对**具体工作负载**寻找瓶颈，而不能只看卡的标称 FLOP/s。
+
+相关资料：[NVIDIA GPU 计算与内存层级](https://docs.nvidia.com/deeplearning/performance/dl-performance-gpu-background/index.html)、[H100 规格](https://www.nvidia.com/en-gb/data-center/h100/)、[HGX B200 系统规格](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf)、[矩阵乘法的数据复用](https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html)、[A100 架构与显存设计](https://images.nvidia.com/aem-dam/en-zz/Solutions/data-center/nvidia-ampere-architecture-whitepaper.pdf)、[消费级 GPU 的显存、缓存与压缩](https://developer.nvidia.com/blog/nvidia-turing-architecture-in-depth/)、[H100 的用户与用途](https://nvidianews.nvidia.com/news/nvidia-hopper-gpus-expand-reach-as-demand-for-ai-grows)。
