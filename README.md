@@ -1,6 +1,6 @@
 # Niwde Blog
 
-Niwde 的个人技术博客，内容聚焦游戏后端、AI 开发、项目实验与工程复盘。
+Niwde 的个人技术笔记，记录游戏后端、AI 开发、项目实验与学习过程，方便自己查阅。
 
 - 项目：[RealmMesh](https://github.com/lvivvde/RealmMesh)
 - 框架：[Astro](https://astro.build/)
@@ -20,7 +20,24 @@ npm run build
 npm run preview
 ```
 
-站点包含作品集首页与技术文章，统一输出到 `dist/`。页面使用 `noindex`，供持有链接的访客访问。发布步骤见 [部署说明](deploy/README.md)。
+首页按时间列出文章，并提供项目和资料入口。文章归档、分类、项目、资料、关于与课程页面统一输出到 `dist/`。页面使用 `noindex`，供持有链接的访客访问。发布步骤见 [部署说明](deploy/README.md)。
+
+## 页面与样式
+
+布局参考 [Astro Cactus](https://github.com/chrismwilliams/astro-theme-cactus)，字体参考 [AstroPaper](https://github.com/satnaing/astro-paper)。Google Sans Code 随站点本地提供，中文使用系统字体回退；字体许可证位于 `src/assets/fonts/google-sans-code-LICENSE.txt`。
+
+```text
+src/
+├── site.config.ts          # 名称、描述、导航和个人链接
+├── data/                   # 项目与资料，首页和独立页面共用
+├── lib/posts.ts            # 公开文章、日期排序和重复 URL 检查
+├── layouts/                # 通用文档布局与文章布局
+├── components/layout/      # 导航、页脚与主题切换
+├── components/blog/        # 文章列表、分类导航和目录
+└── styles/                 # 主题变量、全局基础样式、正文排版
+```
+
+课程使用宽版布局，内容与交互独立于博客文章。修改主题或全局样式后，同时检查 `/ai-course/`。文章文件名决定原有 URL，目录决定分类；页面重构不改变这两个约定。
 
 ## 写文章
 

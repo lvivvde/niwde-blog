@@ -1,5 +1,20 @@
 ---
-import PortfolioHome from '../components/PortfolioHome.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostList from '../components/blog/PostList.astro';
+import ProjectList from '../components/ProjectList.astro';
+import ResourceList from '../components/ResourceList.astro';
+import { getPublishedPosts } from '../lib/posts';
+import { siteConfig } from '../site.config';
+const posts = await getPublishedPosts();
 ---
-
-<PortfolioHome />
+<BaseLayout title={siteConfig.title}>
+  <p class="introduction">{siteConfig.description}</p>
+  <section aria-labelledby="posts-title"><div class="section-heading"><h1 id="posts-title">文章</h1><a href="/blog/">归档 →</a></div><PostList posts={posts} /></section>
+  <section aria-labelledby="projects-title"><div class="section-heading"><h2 id="projects-title">项目</h2><a href="/projects/">项目记录 →</a></div><ProjectList /></section>
+  <section aria-labelledby="resources-title"><div class="section-heading"><h2 id="resources-title">资料</h2><a href="/resources/">全部资料 →</a></div><ResourceList /></section>
+</BaseLayout>
+<style>
+  .introduction { margin-bottom: 2.75rem; color: var(--text-soft); font-size: .875rem; }
+  section + section { margin-top: 3rem; }
+  h1 { margin: 0; font-size: 1.25rem; }
+</style>

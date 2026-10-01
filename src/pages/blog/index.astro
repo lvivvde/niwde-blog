@@ -1,26 +1,17 @@
 ---
-import { getCollection } from 'astro:content';
-import CategoryNav from '../../components/CategoryNav.astro';
-import PostList from '../../components/PostList.astro';
-import PageLayout from '../../layouts/PageLayout.astro';
-
-const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CategoryNav from '../../components/blog/CategoryNav.astro';
+import PostList from '../../components/blog/PostList.astro';
+import { getPublishedPosts } from '../../lib/posts';
+const posts = await getPublishedPosts();
+const years = [...new Set(posts.map((post) => post.data.pubDate.getUTCFullYear()))];
 ---
-
-<PageLayout title="文章 · Niwde" description="游戏后端、AI 开发、项目实验与随笔复盘。">
-	<header class="page-header">
-		<p class="eyebrow">Writing</p>
-		<h1>文章</h1>
-		<p>从真实项目出发，记录能复用的方法，也保留失败与不确定性。</p>
-		<CategoryNav />
-	</header>
-	<PostList posts={posts} emptyMessage="还没有公开文章。" />
-</PageLayout>
-
+<BaseLayout title="文章 · Niwde">
+  <header class="page-header"><h1>文章</h1><p>{posts.length} 篇，按时间排列。</p><CategoryNav /></header>
+  {years.map((year) => <section class="archive-year" aria-labelledby={`year-${year}`}><h2 id={`year-${year}`}>{year}</h2><PostList posts={posts.filter((post) => post.data.pubDate.getUTCFullYear() === year)} /></section>)}
+  {!posts.length && <p class="muted">还没有文章。</p>}
+</BaseLayout>
 <style>
-	.page-header { max-width: 720px; margin-bottom: 4rem; }
-	.page-header h1 { margin-bottom: 1rem; }
-	.page-header > p:not(.eyebrow) { color: var(--text-soft); font-size: 1.15rem; }
+  .archive-year + .archive-year { margin-top: 2.5rem; }
+  .archive-year > h2 { margin-bottom: 1.25rem; color: var(--text-soft); font-size: .875rem; font-weight: 500; }
 </style>

@@ -1,0 +1,25 @@
+---
+import { projects } from '../data/projects';
+interface Props { detailed?: boolean; }
+const { detailed = false } = Astro.props;
+---
+<ul class:list={['project-list', { detailed }]}>{projects.map((project) => <li>
+  <div class="project-heading"><a href={project.href}>{project.name}</a><span>{project.stack}</span></div>
+  <p>{project.description}</p>
+  {detailed && <><ul class="project-details">{project.details.map((detail) => <li>{detail}</li>)}</ul><div class="project-links"><a href={project.href}>开发记录</a>{project.source && <a href={project.source}>源代码 ↗</a>}</div></>}
+</li>)}</ul>
+<style>
+  .project-list { display: grid; gap: 1.5rem; margin: 0; padding: 0; list-style: none; }
+  .project-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem 1rem; }
+  .project-heading > a { color: var(--text); text-decoration: none; }
+  .project-heading > a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .project-heading > span { color: var(--text-soft); font-size: .7rem; }
+  p { margin: .25rem 0 0; color: var(--text-soft); font-size: .8rem; }
+  .detailed { gap: 2.5rem; }
+  .detailed > li + li { padding-top: 2rem; border-top: 1px solid var(--border); }
+  .detailed .project-heading > a { font-size: 1.1rem; font-weight: 650; }
+  .detailed p { font-size: .875rem; }
+  .project-details { margin: 1rem 0; padding-left: 1.25rem; font-size: .875rem; }
+  .project-details li { margin-bottom: .5rem; }
+  .project-links { display: flex; gap: 1.25rem; font-size: .8rem; }
+</style>

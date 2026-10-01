@@ -1,0 +1,11 @@
+---
+import { resources } from '../data/resources';
+---
+<ul class="resource-list">{resources.map((resource) => <li><a href={resource.href}>{resource.title}</a><p>{resource.description}</p></li>)}</ul>
+<style>
+  .resource-list { margin: 0; padding: 0; list-style: none; }
+  li + li { margin-top: 1.25rem; }
+  a { color: var(--text); text-decoration: none; }
+  a:hover { color: var(--accent-strong); text-decoration: underline; }
+  p { margin: .25rem 0 0; color: var(--text-soft); font-size: .8rem; }
+</style>

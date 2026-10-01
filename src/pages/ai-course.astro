@@ -1,6 +1,6 @@
 ---
 // 页面 /ai-course/：面向课堂听众的大屏内容页；按我自己的编程工作流线性展开。
-import PageLayout from '../layouts/PageLayout.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
 
 const checkpoints = [
 	{ n: 1, name: '需求对齐', summary: '表达目标、成功标准，并提前设计验证回路' },
@@ -268,7 +268,7 @@ const resources = [
 ];
 ---
 
-<PageLayout title="AI 编程经验分享" description="我自己的 AI 编程工作流：从需求对齐到 Code Review。">
+<BaseLayout wide title="AI 编程经验分享" description="我自己的 AI 编程工作流：从需求对齐到 Code Review。">
 	<article class="ac" data-pagefind-body>
 		<header class="ac-head">
 			<p class="eyebrow">AI 辅助软件开发</p>
@@ -732,7 +732,7 @@ getHoroscope()  // 再由星座派生`}</code></pre>
 				</section>
 		</div>
 	</article>
-</PageLayout>
+</BaseLayout>
 
 <script>
 	// 打印时展开所有 <details>，PDF 里才看得到摘要与边界。

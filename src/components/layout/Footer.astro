@@ -1,0 +1,17 @@
+---
+import { siteConfig } from '../../site.config';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer" data-pagefind-ignore>
+	<p>© {year} {siteConfig.title}</p>
+	<nav aria-label="页脚"><a href={siteConfig.github}>GitHub</a><a href="/rss.xml">RSS</a><a href="#main-content">回到顶部 ↑</a></nav>
+</footer>
+
+<style>
+	.site-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .75rem 1.5rem; width: var(--content-width); margin: 4rem auto 2.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); color: var(--text-soft); font-size: .75rem; }
+	p { margin: 0; }
+	nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+	a { color: inherit; text-decoration: none; }
+	a:hover { color: var(--accent-strong); text-decoration: underline; }
+</style>

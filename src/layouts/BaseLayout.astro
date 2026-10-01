@@ -1,0 +1,27 @@
+---
+import type { ImageMetadata } from 'astro';
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import { siteConfig } from '../site.config';
+
+interface Props {
+	title: string;
+	description?: string;
+	image?: ImageMetadata;
+	wide?: boolean;
+}
+
+const { title, description = siteConfig.description, image, wide = false } = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head><BaseHead title={title} description={description} image={image} /><slot name="head" /></head>
+	<body>
+		<a class="skip-link" href="#main-content">跳到正文</a>
+		<Header />
+		<main id="main-content" tabindex="-1" class:list={['site-main', { 'site-main--wide': wide }]} data-pagefind-body><slot /></main>
+		<Footer />
+	</body>
+</html>

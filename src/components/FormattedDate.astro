@@ -1,17 +1,8 @@
 ---
-interface Props {
-	date: Date;
-}
-
-const { date } = Astro.props;
+interface Props { date: Date; compact?: boolean; }
+const { date, compact = false } = Astro.props;
+const formatted = new Intl.DateTimeFormat('zh-CN', {
+  timeZone: 'UTC', year: 'numeric', month: compact ? '2-digit' : 'long', day: compact ? '2-digit' : 'numeric',
+}).format(date);
 ---
-
-<time datetime={date.toISOString()}>
-	{
-		date.toLocaleDateString('zh-CN', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric',
-		})
-	}
-</time>
+<time datetime={date.toISOString()}>{compact ? formatted.replaceAll('/', '-') : formatted}</time>

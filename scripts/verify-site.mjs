@@ -28,6 +28,10 @@ for (const path of filesIn(directory)) {
 		assert.equal(new URL(url).origin, siteConfig.origin, `Wrong social metadata origin: ${path}`);
 	}
 	assert(/<meta\b[^>]*name="robots"[^>]*content="[^"]*noindex/.test(content), `Missing noindex: ${path}`);
+	const ids = new Set([...content.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]));
+	for (const [, fragment] of content.matchAll(/\bhref="#([^"]+)"/g)) {
+		assert(ids.has(decodeURIComponent(fragment)), `Broken page anchor #${fragment}: ${path}`);
+	}
 	for (const [, href] of content.matchAll(/\b(?:href|src)="(\/(?!\/)[^"?#]*)[^\"]*"/g)) {
 		const target = resolve(directory, `.${decodeURIComponent(href)}`);
 		assert(target === directory || target.startsWith(`${directory}/`), `Path escapes site: ${href}`);
@@ -35,8 +39,12 @@ for (const path of filesIn(directory)) {
 	}
 }
 const rss = readFileSync(join(directory, 'rss.xml'), 'utf8');
-for (const [, url] of rss.matchAll(/<link>([^<]+)<\/link>/g)) assert.equal(new URL(url).origin, siteConfig.origin);
+for (const [, url] of rss.matchAll(/<link>([^<]+)<\/link>/g)) {
+	const link = new URL(url);
+	assert.equal(link.origin, siteConfig.origin);
+	assert(existsSync(join(directory, decodeURIComponent(link.pathname), 'index.html')), `Broken RSS link: ${url}`);
+}
 assert(existsSync(join(directory, 'pagefind', 'pagefind.js')), 'Missing search index');
 assert(!/^Disallow:\s*\/\s*$/m.test(readFileSync(join(directory, 'robots.txt'), 'utf8')), 'Crawlers cannot see noindex');
 assert(!existsSync(join(directory, 'sitemap-index.xml')), 'Unexpected sitemap for noindex site');
-console.log(`${htmlFiles.length} pages checked: single-site output, links, metadata, noindex, RSS, and search.`);
+console.log(`${htmlFiles.length} pages checked: single-site output, links, anchors, metadata, noindex, RSS, and search.`);

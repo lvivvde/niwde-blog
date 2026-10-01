@@ -1,0 +1,14 @@
+---
+import { BLOG_CATEGORIES } from '../../categories';
+interface Props { current?: string; }
+const { current } = Astro.props;
+---
+<nav class="category-nav" aria-label="文章分类" data-pagefind-ignore>
+  <a href="/blog/" aria-current={!current ? 'page' : undefined}>全部</a>
+  {BLOG_CATEGORIES.map((category) => <a href={`/categories/${category.slug}/`} aria-current={current === category.name ? 'page' : undefined}>{category.name}</a>)}
+</nav>
+<style>
+  .category-nav { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin-top: 1.25rem; font-size: .8rem; }
+  a { color: var(--text-soft); text-decoration: none; }
+  a:hover, a[aria-current] { color: var(--accent-strong); text-decoration: underline; text-underline-offset: .35em; }
+</style>

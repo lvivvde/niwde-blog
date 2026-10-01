@@ -1,0 +1,41 @@
+<button id="theme-toggle" class="icon-button" type="button" aria-label="切换深色模式" aria-pressed="false" title="切换深色模式">
+	<svg class="moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M20.8 13.1A9 9 0 0 1 10.9 3.2 9 9 0 1 0 20.8 13.1Z" /></svg>
+	<svg class="sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" /></svg>
+</button>
+
+<script>
+	const button = document.querySelector<HTMLButtonElement>('#theme-toggle');
+	const root = document.documentElement;
+	const preference = window.matchMedia('(prefers-color-scheme: dark)');
+	const sync = () => {
+		const dark = root.dataset.theme === 'dark';
+		const label = dark ? '切换浅色模式' : '切换深色模式';
+		button?.setAttribute('aria-label', label);
+		button?.setAttribute('title', label);
+		button?.setAttribute('aria-pressed', String(dark));
+	};
+	const apply = (theme: 'light' | 'dark') => {
+		root.dataset.theme = theme;
+		sync();
+		window.dispatchEvent(new CustomEvent('theme-change', { detail: theme }));
+	};
+	button?.addEventListener('click', () => {
+		const theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+		apply(theme);
+		try { localStorage.setItem('theme', theme); } catch { /* Theme still works without storage. */ }
+	});
+	preference.addEventListener('change', (event) => {
+		try {
+			const saved = localStorage.getItem('theme');
+			if (saved === 'dark' || saved === 'light') return;
+		} catch { /* Follow the system when storage is unavailable. */ }
+		apply(event.matches ? 'dark' : 'light');
+	});
+	sync();
+</script>
+
+<style>
+	.sun { display: none; }
+	:global([data-theme='dark']) .moon { display: none; }
+	:global([data-theme='dark']) .sun { display: block; }
+</style>

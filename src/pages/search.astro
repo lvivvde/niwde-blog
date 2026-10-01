@@ -1,36 +1,44 @@
 ---
-import PageLayout from '../layouts/PageLayout.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
 ---
-
-<PageLayout title="搜索 · Niwde" description="搜索 Niwde 的技术文章。">
-	<section class="search-page" data-pagefind-ignore>
-		<p class="eyebrow">Search</p>
-		<h1>搜索</h1>
-		<p class="muted">搜索文章标题、正文、分类和标签。</p>
-		<div id="search"></div>
-		<p id="search-status" class="muted">正在加载搜索索引…</p>
-	</section>
-</PageLayout>
-
-<link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
-<script is:inline src="/pagefind/pagefind-ui.js"></script>
-<script is:inline>
-	(() => {
-		const status = document.querySelector('#search-status');
-		try {
-			new window.PagefindUI({ element: '#search', showSubResults: true, translations: { placeholder: '输入关键词', clear_search: '清除', zero_results: '没有找到 [SEARCH_TERM] 的结果' } });
-			status?.remove();
-		} catch {
-			if (status) status.textContent = '搜索索引在生产构建后可用。';
-		}
-	})();
+<BaseLayout title="搜索 · Niwde" description="搜索文章标题、正文、分类与标签。">
+  <link slot="head" href="/pagefind/pagefind-ui.css" rel="stylesheet" />
+  <script slot="head" is:inline defer src="/pagefind/pagefind-ui.js"></script>
+  <section data-pagefind-ignore>
+    <header class="page-header"><h1>搜索</h1><p>搜索文章标题、正文、分类与标签。</p></header>
+    <div id="search"></div>
+    <p id="search-status" class="muted" role="status">正在加载搜索…</p>
+  </section>
+</BaseLayout>
+<script>
+  function initializeSearch() {
+    const status = document.querySelector('#search-status');
+    const search = (window as typeof window & { PagefindUI?: new (options: Record<string, unknown>) => unknown }).PagefindUI;
+    if (!search) {
+      if (status) status.textContent = '搜索暂时不可用，请稍后重试。';
+      return;
+    }
+    new search({
+      element: '#search',
+      showSubResults: true,
+      showImages: false,
+      resetStyles: false,
+      translations: {
+        placeholder: '输入关键词', clear_search: '清除', search_label: '搜索本站',
+        zero_results: '没有找到 “[SEARCH_TERM]” 的结果',
+        many_results: '找到 [COUNT] 个结果', one_result: '找到 1 个结果',
+        load_more: '更多结果', searching: '正在搜索…',
+      },
+    });
+    status?.remove();
+  }
+  if (document.readyState === 'complete') initializeSearch();
+  else window.addEventListener('load', initializeSearch, { once: true });
 </script>
-
 <style>
-	.search-page { max-width: 760px; }
-	.search-page h1 { margin-bottom: 1rem; }
-	#search { margin-top: 2rem; }
-	:global(.pagefind-ui__search-input) { background: var(--surface-raised) !important; color: var(--text) !important; }
-	:global(.pagefind-ui__result-link) { color: var(--text) !important; }
-	:global(.pagefind-ui__result-excerpt) { color: var(--text-soft) !important; }
+  #search { --pagefind-ui-scale: .85; --pagefind-ui-primary: var(--accent-strong); --pagefind-ui-text: var(--text); --pagefind-ui-background: var(--surface); --pagefind-ui-border: var(--border); --pagefind-ui-tag: var(--code); --pagefind-ui-border-width: 1px; --pagefind-ui-border-radius: 4px; --pagefind-ui-font: var(--font-body); }
+  #search-status { font-size: .875rem; }
+  :global(.pagefind-ui__result-link) { color: var(--accent-strong) !important; }
+  :global(.pagefind-ui__result-title) { font-size: 1rem !important; }
+  :global(.pagefind-ui__result-excerpt) { color: var(--text-soft); }
 </style>

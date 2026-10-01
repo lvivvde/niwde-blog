@@ -6,10 +6,8 @@ const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
 const enabled = repo && repoId && category && categoryId;
 ---
 
-<section class="comments" data-pagefind-ignore>
+{enabled && <section class="comments" data-pagefind-ignore>
 	<h2>讨论</h2>
-	{
-		enabled ? (
 			<script
 				is:inline
 				src="https://giscus.app/client.js"
@@ -27,11 +25,7 @@ const enabled = repo && repoId && category && categoryId;
 				crossorigin="anonymous"
 				async
 			></script>
-		) : (
-			<p class="muted">评论将在 GitHub Discussions 配置完成后开放。</p>
-		)
-	}
-</section>
+</section>}
 
 <style>
 	.comments { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); }

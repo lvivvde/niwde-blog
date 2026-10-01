@@ -1,0 +1,29 @@
+:root {
+  color-scheme: light;
+  --accent: #087f5b;
+  --accent-strong: #07664b;
+  --accent-soft: #e7f2ed;
+  --surface: #fafafa;
+  --surface-raised: #fff;
+  --text: #303438;
+  --text-soft: #666c73;
+  --border: #e0e3e5;
+  --code: #eef0f2;
+  --shadow: none;
+  --site-width: 48rem;
+  --content-width: min(calc(100% - 3rem), var(--site-width));
+  --font-body: var(--font-google-sans-code), 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  --font-code: var(--font-google-sans-code), 'PingFang SC', 'Microsoft YaHei', monospace;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --accent: #2bbc8a;
+  --accent-strong: #65d8ae;
+  --accent-soft: #20372f;
+  --surface: #1d1f21;
+  --surface-raised: #25282b;
+  --text: #d6d8da;
+  --text-soft: #a2a8b0;
+  --border: #383d42;
+  --code: #2a2e32;
+}

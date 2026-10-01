@@ -1,0 +1,19 @@
+---
+import type { MarkdownHeading } from 'astro';
+interface Props { headings: MarkdownHeading[]; }
+const headings = Astro.props.headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+---
+{headings.length > 0 && <details class="article-toc" data-pagefind-ignore>
+  <summary>目录<span>{headings.length} 节</span></summary>
+  <nav aria-label="文章目录"><ul>{headings.map((heading) => <li class:list={{ nested: heading.depth === 3 }}><a href={`#${heading.slug}`}>{heading.text}</a></li>)}</ul></nav>
+</details>}
+<style>
+  .article-toc { margin-bottom: 2rem; padding: .75rem 0; border-block: 1px solid var(--border); font-size: .8rem; }
+  summary { color: var(--text-soft); cursor: pointer; }
+  summary > span { margin-left: .75rem; font-size: .7rem; }
+  nav { margin-top: 1rem; }
+  ul { display: grid; gap: .45rem; margin: 0; padding-left: 1.2rem; list-style: none; }
+  .nested { padding-left: 1rem; }
+  a { color: var(--text-soft); text-decoration: none; }
+  a:hover { color: var(--accent-strong); text-decoration: underline; }
+</style>

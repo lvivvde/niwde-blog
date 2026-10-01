@@ -1,0 +1,18 @@
+---
+interface Props {
+	href: string;
+}
+
+const { href } = Astro.props;
+const normalize = (path: string) => path.replace(/\/+$/, '') || '/';
+const path = normalize(Astro.url.pathname);
+const target = normalize(href);
+const active = path === target || (target !== '/' && path.startsWith(`${target}/`));
+---
+
+<a href={href} class:list={{ active }} aria-current={active ? 'page' : undefined}><slot /></a>
+
+<style>
+	a { color: var(--text-soft); text-decoration: none; text-underline-offset: .4em; }
+	a:hover, a.active { color: var(--accent-strong); text-decoration: underline; }
+</style>

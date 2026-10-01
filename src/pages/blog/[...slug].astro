@@ -1,14 +1,11 @@
 ---
-import { type CollectionEntry, getCollection, render } from 'astro:content';
+import { type CollectionEntry, render } from 'astro:content';
 import { getCategoryFromEntryId, getPostSlug } from '../../categories';
+import { getPublishedPosts } from '../../lib/posts';
 import BlogPost from '../../layouts/BlogPost.astro';
 
 export async function getStaticPaths() {
-	const posts = await getCollection('blog', ({ data }) => !data.draft);
-	const slugs = posts.map((post) => getPostSlug(post.id));
-	if (new Set(slugs).size !== slugs.length) {
-		throw new Error('Blog filenames must be unique across category folders.');
-	}
+	const posts = await getPublishedPosts();
 	return posts.map((post) => ({
 		params: { slug: getPostSlug(post.id) },
 		props: post,
@@ -17,9 +14,9 @@ export async function getStaticPaths() {
 type Props = CollectionEntry<'blog'>;
 
 const post = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
 ---
 
-<BlogPost {...post.data} category={getCategoryFromEntryId(post.id).name}>
+<BlogPost {...post.data} category={getCategoryFromEntryId(post.id).name} headings={headings}>
 	<Content />
 </BlogPost>

@@ -9,23 +9,20 @@ export default defineConfig({
 	site: siteConfig.origin,
 	outDir: './dist',
 	integrations: [mdx()],
+	markdown: {
+		shikiConfig: { themes: { light: 'github-light', dark: 'github-dark' } },
+	},
 	fonts: [
 		{
 			provider: fontProviders.local(),
-			name: 'Atkinson',
-			cssVariable: '--font-atkinson',
-			fallbacks: ['sans-serif'],
+			name: 'Google Sans Code',
+			cssVariable: '--font-google-sans-code',
+			fallbacks: ['monospace'],
 			options: {
 				variants: [
 					{
-						src: ['./src/assets/fonts/atkinson-regular.woff'],
-						weight: 400,
-						style: 'normal',
-						display: 'swap',
-					},
-					{
-						src: ['./src/assets/fonts/atkinson-bold.woff'],
-						weight: 700,
+						src: ['./src/assets/fonts/google-sans-code.ttf'],
+						weight: '300 800',
 						style: 'normal',
 						display: 'swap',
 					},
