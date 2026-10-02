@@ -54,6 +54,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: production
+    permissions:
+      contents: write
     steps:
       - name: Download site artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -81,33 +83,26 @@ jobs:
           )
           ssh-keygen -Y sign -q -f "$signing_key" -n niwde-blog dist/.manifest.sha256
 
-      - name: Configure deployment key
+      # The VPS no longer accepts inbound SSH from the public internet.
+      # Instead it pulls this signed bundle over HTTPS from a systemd timer
+      # (niwde-blog-sync). The signature produced above is what makes the
+      # pull path trustworthy: activate-niwde-blog verifies it on the VPS
+      # before the release is switched live.
+      - name: Publish deployment bundle
         env:
-          DEPLOY_SSH_KEY_B64: ${{ secrets.DEPLOY_SSH_KEY_B64 }}
-          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          install -d -m 700 ~/.ssh
-          printf '%s' "$DEPLOY_SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-
-      - name: Upload immutable release
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-        run: |
-          rsync -az --delete \
-            -e "ssh -p $DEPLOY_PORT -o StrictHostKeyChecking=yes" \
-            dist/ "$DEPLOY_USER@$DEPLOY_HOST:$GITHUB_SHA/"
-
-      - name: Activate release
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-        run: |
-          ssh -p "$DEPLOY_PORT" -o StrictHostKeyChecking=yes \
-            "$DEPLOY_USER@$DEPLOY_HOST" \
-            "activate $GITHUB_SHA"
+          set -euo pipefail
+          printf '%s\n' "$GITHUB_SHA" > dist/.deploy-sha
+          tar -czf dist.tar.gz -C dist .
+          if gh release view deploy-latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload deploy-latest dist.tar.gz --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create deploy-latest \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --prerelease \
+              --title "Deployment bundle (rolling)" \
+              --notes "Rolling bundle consumed by the VPS pull deployer. Source commit: $GITHUB_SHA" \
+              dist.tar.gz
+          fi
