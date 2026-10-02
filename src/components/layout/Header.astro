@@ -6,7 +6,7 @@ import ThemeToggle from './ThemeToggle.astro';
 
 <header class="site-header" data-pagefind-ignore>
 	<div class="header-top">
-		<a class="brand" href="/" aria-label={`${siteConfig.title} 首页`}><span class="brand-dot" aria-hidden="true"></span>{siteConfig.title}</a>
+		<a class="brand" href="/" aria-label={`${siteConfig.title} 首页`}><img class="brand-mark" src="/favicon.svg?v=cactus-1" width="28" height="28" alt="" aria-hidden="true" />{siteConfig.title}</a>
 		<div class="tools">
 			<a class="icon-button" href="/search/" aria-label="搜索" title="搜索"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg></a>
 			<ThemeToggle />
@@ -19,7 +19,7 @@ import ThemeToggle from './ThemeToggle.astro';
 	.site-header { width: var(--content-width); margin: 3.5rem auto 3rem; }
 	.header-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 	.brand { display: inline-flex; align-items: center; gap: .65rem; color: var(--text); font-size: 1.6rem; font-weight: 650; text-decoration: none; letter-spacing: -.04em; }
-	.brand-dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--accent); }
+	.brand-mark { width: 1.75rem; height: 1.75rem; flex-shrink: 0; }
 	.tools { display: flex; gap: .25rem; }
 	nav { display: flex; flex-wrap: wrap; gap: .55rem 1.25rem; margin-top: .7rem; font-size: .875rem; }
 	@media (max-width: 600px) { .site-header { margin-top: 2rem; margin-bottom: 2.5rem; } nav { gap: .6rem 1.1rem; } }
